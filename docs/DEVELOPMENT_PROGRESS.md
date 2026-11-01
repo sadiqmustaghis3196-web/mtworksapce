@@ -77,3 +77,9 @@ Use /workspace/mtworksapce; do not create another application root. Read this fi
 Do not run historical scripts/start_dev.sh: it has macOS paths. Current frontend dev server is Vite on standard port 8000. The task-owned Python static server and temporary port-8001 QA server were stopped after browser validation. Stop only task-owned processes before switching ports. Production deployment is not implemented.
 
 Project creation/update/membership screens and endpoints are still outstanding; only the project listing endpoint is implemented. Do not consider the project-board module complete.
+
+## Vercel deployment follow-up
+
+User reported FUNCTION_INVOCATION_FAILED after deploying to Vercel. Exact hosted exception is unknown without Runtime Logs. Added root vercel.json (Vite frontend, same-origin Express function, static/SPA routing), api/index.js adapter, explicit Prisma generation in build:vercel, generated-engine inclusion, and rhel-openssl-3.0.x target for the Vercel Linux runtime. Trust the Vercel proxy for rate limiting only under VERCEL. Playwright now matches only *.spec.js, keeping Node deployment tests separate.
+
+Four local deployment-configuration tests pass; React production build passes. Full Vercel build remains blocked in this cloud by binaries.prisma.sh policy (verified checksum fetch returns 403). This does not prove the same policy issue exists inside Vercel. No live deployment validation or Runtime Logs access is available. User must use repository root (not server/), hosted PostgreSQL, reviewed/applied schema, exact HTTPS APP_ORIGINS and redeploy. See docs/VERCEL_DEPLOYMENT.md. Changes do not complete the pending ERP modules or migration milestone.

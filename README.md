@@ -46,3 +46,7 @@ Frontend port 8000, API port 5000. Production requires HTTPS, NODE_ENV=productio
 - Historical server tests expect removed fixed accounts/data and JWT bearer responses. They are preserved as legacy test references, not evidence for the new session architecture.
 
 `docs/legacy/` contains historical reports. Their completion claims and old file references do not describe the rebuild. `scripts/start_dev.sh` and `scripts/serve.py` are historical helpers; use the commands above until the unified Linux startup helper is validated.
+
+## Vercel
+
+See [Vercel deployment instructions](docs/VERCEL_DEPLOYMENT.md). Deploy from the repository root using root vercel.json, with a hosted PostgreSQL DATABASE_URL and exact HTTPS APP_ORIGINS. The build explicitly generates Prisma before bundling. Database migration/provisioning and real-deployment checks remain required; a frontend build alone does not establish deployment readiness.

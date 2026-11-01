@@ -22,6 +22,9 @@ const clientOpsRouter = require('./routes/clientOps');
 
 const app = express();
 
+// Vercel terminates HTTPS and forwards the client IP through its proxy.
+if (process.env.VERCEL) app.set('trust proxy', 1);
+
 // Global Middleware & CORS Configuration with Credentials
 const allowedOrigins = [
   'http://localhost:8000',
