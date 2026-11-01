@@ -19,7 +19,7 @@ async function logAudit(txOrPrisma, { userId, userRole, action, detail, ipAddres
     });
   } catch (err) {
     console.error('[AUDIT LOG ERROR] Failed to record audit log:', err.message);
-    // Don't crash request if audit log fails, but log error
+    throw err; // Never report an audited mutation as successful without its audit record.
   }
 }
 

@@ -96,6 +96,8 @@ model User {
   userRoles      UserRole[]
   auditLogs      AuditLog[]
   notifications  Notification[]
+  taskActivities TaskActivity[]
+  sessions       Session[]
   resetTokens    PasswordResetToken[]
 
   @@index([email])
@@ -272,6 +274,8 @@ model Task {
   dueTime            String?          @default("18:00")
   estimatedHours     Float            @default(0)
   actualHours        Float            @default(0)
+  progress           Int              @default(0)
+  activities         TaskActivity[]
   voiceAlertsEnabled Boolean          @default(true)
   approvedBy         String?
   approvedAt         DateTime?
@@ -692,4 +696,29 @@ model VoiceCallLog {
   createdAt      DateTime @default(now())
 
   task           Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+
+model Session {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model TaskActivity {
+  id        String   @id @default(uuid())
+  taskId    Int
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  fromStage Int
+  toStage   Int
+  reason    String?
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  @@index([taskId, createdAt])
 }

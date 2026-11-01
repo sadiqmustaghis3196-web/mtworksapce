@@ -11,7 +11,10 @@
     "prisma:push": "prisma db push",
     "seed": "node prisma/seed.js",
     "test": "node test/health.test.js",
-    "test:step2": "node test/step2_security_and_tasks.test.js"
+    "test:step2": "node test/step2_security_and_tasks.test.js",
+    "test:unit": "node --test --test-reporter=spec test/unit/*.test.js",
+    "provision-admin": "node scripts/provision-admin.js",
+    "test:integration": "node test/rebuild.integration.js"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
@@ -21,8 +24,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^8.7.1",
-    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "nodemailer": "^7.0.13",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -33,7 +33,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    if ((process.env.APP_ORIGINS || allowedOrigins.join(',')).split(',').includes(origin)) {
       return callback(null, origin);
     }
     const err = new Error('Cross-origin request unauthorized');
@@ -59,6 +59,7 @@ if (config.env !== 'test') {
 }
 
 // Mount API Routes
+app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);

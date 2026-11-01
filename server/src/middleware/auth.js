@@ -1,23 +1,22 @@
 /**
  * MT Nexus Global ERP — Server-Side Authentication & RBAC Middleware
- * Enforces cryptographic JWT validation, HttpOnly cookie sessions,
- * granular role hierarchies, and protected Super Admin security boundaries.
+ * Enforces opaque HttpOnly cookie sessions,
+ * database-backed sessions and protected Super Admin boundaries.
  */
 
-const jwt = require('jsonwebtoken');
-const config = require('../config');
-const prisma = require('../db/prisma');
-const tokenRegistry = require('../utils/tokenRevocation');
+const crypto = require("crypto");
+const config = require("../config");
+const prisma = require("../db/prisma");
 
-const { calculateEffectivePermissions } = require('../utils/permissions');
+const { calculateEffectivePermissions } = require("../utils/permissions");
 
 async function authenticate(req, res, next) {
   let token = null;
 
   // 1. Check Bearer Authorization Header
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
   }
 
   // 2. Fallback to HttpOnly session cookie
@@ -28,31 +27,33 @@ async function authenticate(req, res, next) {
   if (!token) {
     return res.status(401).json({
       success: false,
-      error: 'Unauthorized',
-      message: 'Access denied. Valid authentication token or session cookie required.',
+      error: "Unauthorized",
+      message:
+        "Access denied. Valid authentication token or session cookie required.",
     });
   }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret);
-
-    // Check server-side revocation registry
-    if (tokenRegistry.isRevoked(token, decoded.userId, decoded.iat)) {
-      return res.status(401).json({
-        success: false,
-        error: 'SessionRevoked',
-        message: 'Your authentication session has been logged out and revoked. Please sign in again.',
-      });
-    }
-
+    const session = await prisma.session.findUnique({
+      where: {
+        tokenHash: crypto.createHash("sha256").update(token).digest("hex"),
+      },
+    });
+    if (!session || session.expiresAt <= new Date())
+      return res
+        .status(401)
+        .json({ message: "Your session has expired. Please sign in again." });
     req.token = token;
+    req.sessionId = session.id;
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: session.userId },
       include: {
         userRoles: {
           include: {
-            role: true,
+            role: {
+              include: { permissions: { include: { permission: true } } },
+            },
           },
         },
         employee: {
@@ -66,32 +67,46 @@ async function authenticate(req, res, next) {
     if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized',
-        message: 'User account is deactivated or no longer exists.',
+        error: "Unauthorized",
+        message: "User account is deactivated or no longer exists.",
       });
     }
 
-    const roles = user.userRoles.map(ur => ur.role.name);
-    const primaryRole = roles[0] || (user.isSuperAdmin ? 'Super Admin' : 'Employee');
-    const employeeName = user.employee ? user.employee.fullName : (user.isSuperAdmin ? 'Hamza Tariq' : (roles.includes('Admin') ? 'System Administrator' : 'Nexus User'));
-    const departmentName = user.employee?.department?.name || 'Administration';
-    const departmentCode = user.employee?.department?.code || 'ADM';
+    const roles = user.userRoles.map((ur) => ur.role.name);
+    const primaryRole =
+      roles[0] || (user.isSuperAdmin ? "Super Admin" : "Employee");
+    const employeeName = user.employee
+      ? user.employee.fullName
+      : user.isSuperAdmin
+        ? user.email
+        : roles.includes("Admin")
+          ? "System Administrator"
+          : "Nexus User";
+    const departmentName = user.employee?.department?.name || "Administration";
+    const departmentCode = user.employee?.department?.code || "ADM";
 
     // Generate avatar initials (e.g. "HT" for Hamza Tariq)
     const initials = employeeName
-      .split(' ')
-      .map(part => part[0])
-      .join('')
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
       .substring(0, 2)
       .toUpperCase();
 
     const effectivePermissions = calculateEffectivePermissions({
       roles,
+      permissions: user.userRoles.flatMap((ur) =>
+        ur.role.permissions.map(
+          (p) => `${p.permission.module}.${p.permission.action}`,
+        ),
+      ),
       isSuperAdmin: user.isSuperAdmin,
     });
 
     req.user = {
       id: user.id,
+      organizationId: user.organizationId,
+      departmentId: user.employee?.departmentId,
       email: user.email,
       name: employeeName,
       isSuperAdmin: user.isSuperAdmin,
@@ -102,17 +117,14 @@ async function authenticate(req, res, next) {
       departmentCode,
       employeeId: user.employee ? user.employee.id : null,
       employeeName,
-      avatar: initials || 'NX',
+      avatar: initials || "NX",
       effectivePermissions,
+      permissions: effectivePermissions.permissions,
     };
 
     next();
   } catch (err) {
-    return res.status(401).json({
-      success: false,
-      error: 'InvalidToken',
-      message: 'Authentication session is expired, invalid, or malformed.',
-    });
+    next(err);
   }
 }
 
@@ -121,14 +133,14 @@ async function authenticate(req, res, next) {
  */
 function requireSuperAdmin(req, res, next) {
   if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+    return res.status(401).json({ success: false, error: "Unauthorized" });
   }
 
   if (!req.user.isSuperAdmin) {
     return res.status(403).json({
       success: false,
-      error: 'Forbidden',
-      message: 'Access restricted exclusively to Super Admin.',
+      error: "Forbidden",
+      message: "Access restricted exclusively to Super Admin.",
     });
   }
 
@@ -141,23 +153,24 @@ function requireSuperAdmin(req, res, next) {
  */
 function requireAdminOrSuperAdmin(req, res, next) {
   if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+    return res.status(401).json({ success: false, error: "Unauthorized" });
   }
 
   if (
     req.user.isSuperAdmin ||
-    req.user.roles.includes('Admin') ||
-    req.user.roles.includes('Administrator') ||
-    req.user.roles.includes('Owner / CEO') ||
-    req.user.roles.includes('Operations Manager')
+    req.user.effectivePermissions.canManageUsers ||
+    req.user.roles.includes("Admin") ||
+    req.user.roles.includes("Administrator") ||
+    req.user.roles.includes("Owner / CEO") ||
+    req.user.roles.includes("Operations Manager")
   ) {
     return next();
   }
 
   return res.status(403).json({
     success: false,
-    error: 'Forbidden',
-    message: 'Access restricted to Administrator or Super Admin leadership.',
+    error: "Forbidden",
+    message: "Access restricted to Administrator or Super Admin leadership.",
   });
 }
 
@@ -165,26 +178,12 @@ function requireAdminOrSuperAdmin(req, res, next) {
  * Project Management Guard (Super Admin, Admin, PM, Operations Manager)
  */
 function requireProjectManagerOrHigher(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
-  if (
-    req.user.isSuperAdmin ||
-    req.user.roles.includes('Admin') ||
-    req.user.roles.includes('Administrator') ||
-    req.user.roles.includes('Owner / CEO') ||
-    req.user.roles.includes('Operations Manager') ||
-    req.user.roles.includes('Project Manager')
-  ) {
+  if (!req.user) return res.status(401).json({ message: "Sign in required." });
+  if (req.user.isSuperAdmin || req.user.permissions.includes("tasks.create"))
     return next();
-  }
-
-  return res.status(403).json({
-    success: false,
-    error: 'Forbidden',
-    message: 'Access restricted to Project Managers or Executive Leadership.',
-  });
+  return res
+    .status(403)
+    .json({ message: "Task creation permission required." });
 }
 
 /**
@@ -194,53 +193,25 @@ function requireProjectManagerOrHigher(req, res, next) {
  * - Assigned Employees / Interns: Can only edit tasks assigned to them
  */
 async function canModifyTask(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
-  // Leadership has unrestricted authority
-  if (
-    req.user.isSuperAdmin ||
-    req.user.roles.includes('Admin') ||
-    req.user.roles.includes('Administrator') ||
-    req.user.roles.includes('Owner / CEO') ||
-    req.user.roles.includes('Operations Manager') ||
-    req.user.roles.includes('Project Manager')
-  ) {
-    return next();
-  }
-
-  const taskId = parseInt(req.params.id, 10);
-  if (isNaN(taskId)) {
-    return res.status(400).json({ success: false, error: 'Invalid task ID' });
-  }
-
   try {
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      include: {
-        assignees: true,
-      },
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id))
+      return res.status(400).json({ message: "Invalid task ID." });
+    const { taskScope } = require("../services/taskScope");
+    const task = await prisma.task.findFirst({
+      where: { id, deletedAt: null, ...taskScope(req.user) },
     });
-
-    if (!task || task.deletedAt) {
-      return res.status(404).json({ success: false, error: 'Task not found' });
-    }
-
-    // Check if current user is an assigned member on this task
-    const isAssigned = req.user.employeeId && task.assignees.some(a => a.employeeId === req.user.employeeId);
-    if (!isAssigned) {
+    if (!task) return res.status(404).json({ message: "Task not found." });
+    const assigned = await prisma.taskAssignee.count({
+      where: { taskId: id, employeeId: req.user.employeeId || "__none__" },
+    });
+    if (!req.user.effectivePermissions.canManageTasks && !assigned)
       return res.status(403).json({
-        success: false,
-        error: 'Forbidden',
-        message: 'You are not assigned to this task. Modification denied.',
+        message: "Task assignment or management permission required.",
       });
-    }
-
-    req.targetTask = task;
     next();
-  } catch (err) {
-    next(err);
+  } catch (e) {
+    next(e);
   }
 }
 
@@ -259,8 +230,9 @@ async function protectSuperAdminAccount(req, res, next) {
     if (target && target.isSuperAdmin && !req.user.isSuperAdmin) {
       return res.status(403).json({
         success: false,
-        error: 'Forbidden',
-        message: 'Security Constraint: Protected Super Admin accounts cannot be modified or deleted by operational Admins.',
+        error: "Forbidden",
+        message:
+          "Security Constraint: Protected Super Admin accounts cannot be modified or deleted by operational Admins.",
       });
     }
 
@@ -274,47 +246,25 @@ async function protectSuperAdminAccount(req, res, next) {
  * CSRF Protection for state-changing requests
  */
 function verifyCsrf(req, res, next) {
-  // Read-only methods are exempt
-  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-    return next();
-  }
-
-  // Programmatic Bearer token calls are exempt from browser ambient cookie CSRF
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return next();
-  }
-
-  // Verify origin or referer for cookie-authenticated browser requests
-  const origin = req.headers.origin || req.headers.referer;
-  if (!origin) {
-    // If neither origin nor referer is sent, require custom client header
-    if (req.headers['x-requested-with'] || req.headers['x-csrf-token'] || req.headers['content-type']?.includes('application/json')) {
-      return next();
-    }
-    return res.status(403).json({
-      success: false,
-      error: 'CsrfRejected',
-      message: 'Cross-site request validation failed.',
-    });
-  }
-
-  const allowedOrigins = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'http://localhost:5000',
-    'http://127.0.0.1:5000',
-  ];
-
-  const originMatch = allowedOrigins.some(ao => origin.startsWith(ao));
-  if (!originMatch && !origin.startsWith('http://localhost:') && !origin.startsWith('http://127.0.0.1:')) {
-    return res.status(403).json({
-      success: false,
-      error: 'CsrfForbidden',
-      message: 'Cross-origin state modification blocked.',
-    });
-  }
-
+  const { validateCsrf } = require("../validators/csrf");
+  const allowed = (
+    process.env.APP_ORIGINS ||
+    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5000,http://127.0.0.1:5000"
+  ).split(",");
+  if (
+    !validateCsrf(
+      {
+        method: req.method,
+        origin: req.headers.origin,
+        fetchSite: req.headers["sec-fetch-site"],
+        requestedWith: req.headers["x-requested-with"],
+      },
+      allowed,
+    )
+  )
+    return res
+      .status(403)
+      .json({ message: "Cross-site request validation failed." });
   next();
 }
 
