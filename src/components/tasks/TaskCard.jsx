@@ -56,6 +56,12 @@ export default function TaskCard({ task, onOpen, onTransition, canReview }) {
     <article className="task-card">
       <div className="badges">
         <span className="badge category">{task.category}</span>
+        {task.stage === 2 &&
+          ["testing", "quality"].includes(task.workPhase) && (
+            <span className="badge work-phase">
+              {task.workPhase === "testing" ? "Testing" : "Quality check"}
+            </span>
+          )}
         {["High", "Urgent", "Critical"].includes(task.priority) && (
           <span className={`badge priority ${task.priority.toLowerCase()}`}>
             {task.priority}

@@ -5,7 +5,7 @@ All routes below now have interactive browser-local screens. No “Module not av
 | Routes | Screens / source |
 |---|---|
 | /login, /forgot-password, /reset-password | Login.jsx; public preview login works; real email/password reset unavailable in preview |
-| /dashboard | Dashboard.jsx; current task/people/client/attendance metrics, deadlines, approvals, activity |
+| /dashboard | DailyDashboard.jsx, DailyForms.jsx, DeliveryFlow.jsx; daily delivery pipeline, role/profile lenses, goals, work logs, team progress, deadlines and in-app reminders. Dashboard.jsx retains the real-backend dashboard for the later production phase. |
 | /projects, /projects/:projectId/board, /list, /calendar, /timeline | Projects.jsx; Board/List, month grid and proportional date-axis timeline |
 | /projects/manage | Project CRUD, team membership, related tasks and board links |
 | /clients, /clients/contacts, /clients/projects | Clients, contacts, related projects |

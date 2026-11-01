@@ -3,6 +3,10 @@ async function login(page) {
   await page.goto("/login");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
+    page.getByRole("heading", { name: "Daily work dashboard", exact: true }),
+  ).toBeVisible();
+  await page.goto("/projects");
+  await expect(
     page.getByRole("heading", { name: "Project Boards" }),
   ).toBeVisible();
 }

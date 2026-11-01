@@ -16,3 +16,11 @@ Sign in with the public preview login shown on the form. Current records are loc
 12. **Reporting/data:** Search/filter, pipeline views, pagination and CSV export are available per collection. Dashboard/notifications use current local records. Administration → Settings exports a full JSON backup. Reset sample data requires confirmation and removes local work; it does not change any remote database.
 
 Uploads allow PDF/PNG/JPG/TXT/DOCX up to 1 MB per file and consume browser storage. Browser quota failures show an error instead of success. Download important backups before clearing site data. Full server-based storage, security, accounting integrations and production deployment are not implemented by these local workflows.
+
+## Daily work and accountability
+
+After login, select the dashboard role/profile lens and work date. Managers see their scoped team; employees and interns see personal assignments. Set a daily goal against an assigned unfinished task. Start the task, then Log daily update with work summary, actual minutes, current overall progress, phase, blocker and next step. Updates can only be recorded for today, by an assigned active employee; review-stage updates cannot bypass approval. A change from 60% to 80% contributes 20 percentage points to today's work, not 80%. Multiple updates retain their snapshots.
+
+Select Testing or Quality check when reporting that work. Send for Review uses the existing approval process; approval completes the task and rejection returns it through rework. Daily history records reported work separately from current task state. Admin/team views summarize each person's reports, time, approvals and blockers. Personal preview views hide review/assignment controls.
+
+Notification preferences control deadline/review reminders and daily digest time (Asia/Karachi). Reminders are local, deduplicated and checked while the dashboard is open. Mark read persists. These role lenses and records are for UI testing; real shared accounts, permissions and remote notifications require the later backend phase.

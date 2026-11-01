@@ -70,4 +70,12 @@ See [workflow guide](docs/WORKFLOWS.md), [current checkpoint](docs/DEVELOPMENT_P
 
 ## Professional operations interface
 
-Domain-specific overviews, linked watchlists, recruitment funnels, client/employee/project profiles, structured invoice documents, payroll breakdowns and inline ticket conversations replace the earlier generic-only views. Contextual forms inherit their client/invoice links, suggest values and show live totals. Use Ctrl/Command+K for the current-view search. Theme choice persists. `npm run test:insights` covers the read models and form calculations; the browser suite now contains 25 passing checks. See the [design/workflow lesson](docs/lessons/04-professional-operations.md).
+Domain-specific overviews, linked watchlists, recruitment funnels, client/employee/project profiles, structured invoice documents, payroll breakdowns and inline ticket conversations replace the earlier generic-only views. Contextual forms inherit their client/invoice links, suggest values and show live totals. Use Ctrl/Command+K for the current-view search. Theme choice persists. `npm run test:insights` covers the read models and form calculations; the browser suite now contains 30 passing checks. See the [design/workflow lesson](docs/lessons/04-professional-operations.md).
+
+## Daily delivery dashboard
+
+Login now opens `/dashboard`: company/team views for managers and personal work views for employees and interns. Plan & assign → Build/work → Testing → Quality check → Review → Done is a manually reported delivery workflow, with rework returning to build. It does not run CI/CD tools.
+
+Set daily goals, record work summaries, actual minutes, progress, blockers and next steps. Overall progress is distinct from the change reported today. Daily history uses Asia/Karachi dates. Deadline reminders and notification preferences work in-app while the workspace is open; there is no background, email or push delivery. Role/profile selectors are preview lenses, not real authorization or account switching.
+
+Validation: `npm run test:daily` (14 rule tests), `npm run test:preview` (30 browser checks). See [daily dashboard lesson](docs/lessons/05-daily-dashboard.md).

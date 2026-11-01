@@ -214,6 +214,10 @@ export default function TaskModal({
                   defaultValue={record.progress || 0}
                 />
               </label>
+              <p className="field-help">
+                Overall progress is separate from daily reporting. Use the Daily
+                dashboard to record time, today’s work and blockers.
+              </p>
               <button className="primary" disabled={busy}>
                 {busy ? "Saving…" : "Save changes"}
               </button>
@@ -417,7 +421,7 @@ export default function TaskModal({
               <p key={a.id}>{a.employee?.fullName}</p>
             ))}
             {!record.assignees?.length && <p className="muted">No assignees</p>}
-            {isPreview && (
+            {isPreview && canReview && (
               <form
                 className="task-assign-form"
                 onSubmit={(e) => {

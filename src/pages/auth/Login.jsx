@@ -37,7 +37,7 @@ export default function Login() {
         setMessage(r.message);
       } else {
         await login({ ...fields, rememberMe: fields.rememberMe === "on" });
-        navigate("/projects");
+        navigate("/dashboard");
       }
     } catch (e) {
       setError(e.message);

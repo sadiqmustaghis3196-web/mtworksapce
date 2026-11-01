@@ -3,6 +3,10 @@ const login = async (page) => {
   await page.goto("/login");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
+    page.getByRole("heading", { name: "Daily work dashboard", exact: true }),
+  ).toBeVisible();
+  await page.goto("/projects");
+  await expect(
     page.getByRole("heading", { name: "Project Boards" }),
   ).toBeVisible();
 };
@@ -24,6 +28,10 @@ test("public preview login, edits, transitions, refresh, reset and logout work w
   await expect(page.getByRole("alert")).toContainText("Use the UI preview");
   await page.getByLabel("Password", { exact: true }).fill("NexusUI@2026!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Daily work dashboard", exact: true }),
+  ).toBeVisible();
+  await page.goto("/projects");
   await expect(page.getByText("UI PREVIEW", { exact: true })).toBeVisible();
   const card = page.locator(".task-card").filter({
     has: page.getByRole("button", {

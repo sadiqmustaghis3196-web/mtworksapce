@@ -53,7 +53,7 @@ function App() {
           <Route path="/reset-password" element={<Login />} />
           <Route element={<Protected />}>
             <Route element={<AppLayout />}>
-              <Route index element={<Navigate to="/projects" replace />} />
+              <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="projects" element={<Projects />} />
               <Route path="projects/:projectId/:view" element={<Projects />} />

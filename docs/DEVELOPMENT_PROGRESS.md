@@ -65,3 +65,13 @@ Module dashboards now use domain-specific KPIs and linked operational panels: cl
 New record profiles include workflow stage tracks, project completion/team context, client and employee summaries, structured invoice documents, payroll breakdowns, creative briefs and ticket conversation threads with an inline response composer. Relationship shortcuts apply real URL-driven record filters; add forms inherit that context. Forms suggest invoice IDs/dates, payroll salary/month/deductions, and payment balances without overwriting deliberate edits. Live cent-safe totals and contextual help explain financial entries. Search has a working Ctrl/Command+K shortcut; theme persists after refresh.
 
 New files: src/modules/insights.js (read models), formSupport.js (form defaults/calculations), ModuleOverview.jsx and RecordOverview.jsx. Eight pure insight/form tests passed; 25 browser tests passed, including existing workflows, context drill-downs, invoice documents/calculations, salary suggestion behavior, ticket replies, mobile detail dialogs, keyboard search and persisted theme. Explicit DB-backed endpoints/security remain outside this UI phase. See docs/lessons/04-professional-operations.md.
+
+## Daily delivery dashboard checkpoint
+
+The new login landing page is `/dashboard`. Eleven role templates cover admin, managers, team leads, employees and interns, with company/department/project/personal display scopes and related HR, finance, sales or support agenda items. These are explicitly preview lenses, not server authorization.
+
+Six delivery chevrons show Plan & assign → Build/work → Testing → Quality check → Review → Done. Testing and quality are reported work phases, not automated integrations. Existing approval/rejection/rework preserves task identity. Daily goals, immutable daily updates, actual minutes, progress deltas, blockers, next steps and historical dates survive refresh. Existing task progress is never counted as work performed today. Team rows open individual worklists.
+
+Deadline watch and configurable in-app reminders cover overdue, today, tomorrow, reviews and a local-time daily digest. Reminder generation is deduplicated and runs while the dashboard is open. No email, push or background scheduler is connected. All data remains browser-local in the current UI preview.
+
+New files: src/modules/dailyWork.js; src/pages/dashboard/{DailyDashboard,DailyForms,DeliveryFlow}.jsx; src/styles/dailyDashboard.css. Local adapter routes are documented in API_ENDPOINTS.md. Validation: 14 daily rule tests and 30 browser tests passed, including all role templates, seven viewport sizes, actual employee reporting visible to the admin lens, goal/preferences persistence and reminder deduplication. See lessons/05-daily-dashboard.md.

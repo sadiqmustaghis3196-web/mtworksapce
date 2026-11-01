@@ -1,3 +1,4 @@
+import DailyDashboard from "./DailyDashboard";
 import { isPreview } from "../../preview/config";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -5,7 +6,7 @@ import { ArrowUpRight, PanelsTopLeft } from "lucide-react";
 import { api } from "../../services/api";
 import { PageHeader, State, DataTable } from "../../components/common/UI";
 import { stages } from "../../components/tasks/TaskCard";
-export default function Dashboard() {
+function BackendDashboard() {
   const [data, setData] = useState(null),
     [error, setError] = useState("");
   async function load() {
@@ -119,4 +120,8 @@ export default function Dashboard() {
       )}
     </>
   );
+}
+
+export default function Dashboard() {
+  return isPreview ? <DailyDashboard /> : <BackendDashboard />;
 }

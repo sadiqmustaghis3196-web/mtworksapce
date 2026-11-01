@@ -1,3 +1,11 @@
+import {
+  hydrateDailyWork,
+  dailyDashboard,
+  recordDailyUpdate,
+  planDailyTask,
+  saveReminderPreferences,
+  syncDailyReminders,
+} from "../modules/dailyWork";
 import { validateFile } from "../services/files";
 import { hydrateWorkspace, workspaceRequest, today } from "../modules/store";
 import { initialPreviewData, previewUser } from "./data";
@@ -67,7 +75,38 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
   if (sessionStorage.getItem(SESSION_KEY) !== "active")
     fail("Sign in to the UI preview.", 401);
   if (path === "/auth/me") return { user: previewUser };
-  const data = hydrateWorkspace(load());
+  const data = hydrateDailyWork(hydrateWorkspace(load()));
+  const dailyURL = new URL(path, "http://preview.local");
+  if (dailyURL.pathname === "/dashboard/daily" && method === "GET") {
+    const options = Object.fromEntries(
+      ["role", "profileId", "focusId", "date"]
+        .filter((key) => dailyURL.searchParams.has(key))
+        .map((key) => [key, dailyURL.searchParams.get(key)]),
+    );
+    const created = syncDailyReminders(data, options);
+    if (created) save(data);
+    return { data: dailyDashboard(data, options) };
+  }
+  if (path === "/dashboard/daily/update" && method === "POST") {
+    const entry = recordDailyUpdate(data, body);
+    save(data);
+    return { data: entry };
+  }
+  if (path === "/dashboard/daily/plan" && method === "POST") {
+    const plan = planDailyTask(data, body);
+    save(data);
+    return { data: plan };
+  }
+  if (path === "/dashboard/daily/preferences" && method === "PATCH") {
+    const preferences = saveReminderPreferences(
+      data,
+      body.profileId,
+      body.preferences || {},
+    );
+    save(data);
+    return { data: preferences };
+  }
+
   if (path.startsWith("/workspace/")) {
     const result = workspaceRequest(data, path, { method, body });
     if (method !== "GET") save(data);
@@ -189,6 +228,11 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         createdAt: new Date().toISOString(),
       });
       task.stage = body.targetStage;
+      if (task.stage === 2) task.workPhase = "development";
+      if (task.stage === 4) {
+        task.blocker = "";
+        task.workPhase = "done";
+      }
       const creative = data.records.creativeRequests.find(
         (r) => r.taskId === task.id,
       );
@@ -233,6 +277,17 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         fail(
           "Assignees must be members of the project. Add them to the project team first.",
         );
+      const prior = new Set(task.assignees.map((a) => a.employee.id));
+      for (const id of body.employeeIds.filter((id) => !prior.has(id)))
+        data.records.notifications.unshift({
+          id: crypto.randomUUID(),
+          title: "New task assignment",
+          message: `${data.records.employees.find((e) => e.id === id)?.fullName}: #${task.id} ${task.title}`,
+          status: "Unread",
+          employeeId: id,
+          taskId: task.id,
+          createdAt: new Date().toISOString(),
+        });
       task.assignees = [...new Set(body.employeeIds)].map((id) => ({
         id: crypto.randomUUID(),
         employee: data.records.employees.find((e) => e.id === id),

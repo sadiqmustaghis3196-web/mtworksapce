@@ -29,3 +29,14 @@ Legacy employees/clientOps reads require Super Admin and organization filtering 
 ## Browser-local module adapter (not HTTP backend endpoints)
 
 In the default UI-preview build only, `/workspace/data`, `/workspace/:entity`, `/workspace/:entity/:id`, and `/workspace/:entity/:id/actions/:action` are api() paths handled inside `src/preview/api.js` / `src/modules/store.js`, without fetch. Attendance uses `/workspace/attendance/check-in` and `/check-out`. Task preview actions also support `/tasks/:id/assign`, `/checklists`, checklist items, `/attachments` and parentTaskId for subtasks. These are not newly implemented Express endpoints. Their database-backed equivalents remain pending.
+
+## Browser-only daily dashboard adapter
+
+These routes are intercepted by `src/preview/api.js` in UI preview mode; they are not implemented HTTP backend endpoints:
+
+- `GET /dashboard/daily?role=...&profileId=...&focusId=...&date=YYYY-MM-DD`: scoped daily read model and due in-app reminders.
+- `POST /dashboard/daily/update`: assigned employee, task, today's date, summary, minutes, progress, work phase, blocker and next step.
+- `POST /dashboard/daily/plan`: employee/task/date, daily target and goal.
+- `PATCH /dashboard/daily/preferences`: in-app reminder switches and local digest time.
+
+Validation and history live in `src/modules/dailyWork.js`. Role/profile parameters change the preview display scope and do not establish authorization. No network or background notification delivery occurs.

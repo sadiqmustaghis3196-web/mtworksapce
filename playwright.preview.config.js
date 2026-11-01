@@ -5,6 +5,7 @@ export default defineConfig({
     "**/preview.spec.js",
     "**/modules.spec.js",
     "**/professional.spec.js",
+    "**/dailyDashboard.spec.js",
   ],
   use: {
     baseURL: "http://127.0.0.1:8002",
