@@ -10,6 +10,7 @@ export default defineConfig({
     "**/notifications.spec.js",
     "**/cardInteractions.spec.js",
     "**/revisions.spec.js",
+    "**/operationsRefinement.spec.js",
   ],
   use: {
     baseURL: "http://127.0.0.1:8002",

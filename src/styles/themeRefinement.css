@@ -1,0 +1,320 @@
+.app:not(.light) {
+  --bg: #090f20;
+  --panel: #142138;
+  --card: #0e1a2b;
+  --text: #e7effd;
+  --muted: #a1b5d0;
+  background:
+    radial-gradient(ellipse at 100% 0, #063e5535, transparent 55%),
+    radial-gradient(ellipse at 20% 100%, #341c7033, transparent 70%),
+    linear-gradient(#3f659e0c 1px, transparent 1px),
+    linear-gradient(90deg, #3f659e0c 1px, transparent 1px), #0a1123;
+  background-size:
+    auto,
+    auto,
+    36px 36px,
+    36px 36px,
+    auto;
+}
+.app.light {
+  --bg: #eaf0f7;
+  --panel: #fff;
+  --card: #f4f8fc;
+  --text: #18324d;
+  --muted: #496680;
+  --border: #5d7c9f33;
+  background:
+    radial-gradient(ellipse at 100% 0, #d9eef7, transparent 70%), #edf2f8;
+}
+.light select option {
+  background: #fff;
+  color: #18324d;
+}
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #61778e;
+}
+.light .pipeline-card {
+  background: linear-gradient(140deg, #fff, #eaf2fb);
+  border-color: #6e91b644;
+  color: #234260;
+}
+.light .pipeline-card strong,
+.light .pipeline-card small,
+.light .pipeline-card > span {
+  color: #294c6b;
+}
+.light .module-pipeline > section {
+  background: #e7eef7;
+  border-color: #7c98b644;
+}
+.light .module-pipeline h3 {
+  color: #183b5a;
+}
+.light .module-tabs a {
+  color: #385575;
+}
+.light .module-tabs a.active {
+  background: #164d79;
+  color: #fff;
+}
+.light .record-status {
+  background: #dfeaf7;
+  color: #2b4c69;
+  border: 1px solid #6e8ead44;
+}
+.light
+  :is(
+    .status-active,
+    .status-approved,
+    .status-paid,
+    .status-completed,
+    .status-posted,
+    .status-checked-out
+  ) {
+  background: #dff4e9;
+  color: #146449;
+}
+.light :is(.status-pending, .status-review, .status-onboarding, .status-draft) {
+  background: #fff0d8;
+  color: #815211;
+}
+.light
+  :is(
+    .status-rejected,
+    .status-inactive,
+    .status-lost,
+    .status-voided,
+    .status-revision-requested
+  ) {
+  background: #fce2e5;
+  color: #943b46;
+}
+.light .module-metric strong,
+.light .record-key-stats strong,
+.light .module-records h2,
+.light .record-workflow h3,
+.light .record-section-heading {
+  color: #183b5a;
+}
+.light .record-profile-workflow span,
+.light .record-profile-workflow button {
+  color: #375a77;
+}
+.light .task-move-tools select {
+  background: #e4edf8;
+  color: #214b6c;
+}
+.light .task-actions button:not(.approve) {
+  background: #e1ebf6;
+  color: #284d6e;
+  border-color: #7c9bb444;
+}
+.light .task-actions .approve {
+  color: #fff;
+}
+.light .stage-heading {
+  color: #163e5d;
+}
+.light .badge:not(.category):not(.priority) {
+  color: #254e73;
+  background: #e0edf8;
+}
+.light .badge.revision-badge {
+  background: #fff0dd;
+  color: #83521f;
+}
+.light .task-admin-controls {
+  background: #eaf1f9;
+  color: #355a78;
+}
+.light .record-detail-grid strong,
+.light .record-detail-grid p,
+.light .record-detail-grid > div > span:last-child {
+  color: #2a4c6b;
+}
+.daily-task-card {
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.daily-task-card:hover {
+  box-shadow: 0 0 0 2px #6cb9db28;
+}
+.workflow-task-tracker {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0 22px 22px;
+}
+.workflow-task-tracker > label {
+  min-width: 220px;
+  flex: 1;
+  max-width: 440px;
+  font-size: 10px;
+  color: #b5cce7;
+}
+.workflow-task-tracker select {
+  display: block;
+  margin-top: 7px;
+  background: #10243b;
+  color: #d2e7fa;
+  border: 1px solid #709bc44d;
+  border-radius: 8px;
+  padding: 9px 12px;
+  width: 100%;
+}
+.workflow-task-tracker > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+  font-size: 12px;
+}
+.workflow-task-tracker > div > span {
+  font-size: 10px;
+  color: #a2bdd9;
+}
+.follow-task-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  top: -31px;
+  left: 4px;
+  background: #b83f51;
+  border: 1px solid #ffafad;
+  padding: 6px 10px;
+  border-radius: 7px;
+  color: #fff !important;
+  font-size: 9px !important;
+  font-weight: 600;
+  box-shadow: 0 4px 16px #a92b4944;
+  z-index: 2;
+  white-space: nowrap;
+  animation: follow-task-arrive 0.25s ease-out;
+}
+.follow-task-token i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffd8d6;
+  box-shadow: 0 0 0 3px #ffe0d622;
+}
+.inline-token {
+  position: static;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+.light .workflow-task-tracker > label,
+.light .workflow-task-tracker > div > span {
+  color: #3c5c78;
+}
+.light .workflow-task-tracker select {
+  background: #fff;
+  color: #234c6a;
+}
+.light .current-revision-banner p {
+  color: #4e6177;
+}
+@keyframes follow-task-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .follow-task-token {
+    animation: none;
+  }
+  .daily-task-card {
+    transition: none;
+  }
+}
+@media (max-width: 600px) {
+  .workflow-task-tracker {
+    padding: 0 16px 20px;
+    gap: 12px;
+  }
+  .workflow-task-tracker > label {
+    min-width: 0;
+    max-width: none;
+    flex-basis: 100%;
+  }
+  .follow-task-token {
+    top: -22px;
+    font-size: 8px !important;
+    padding: 4px 7px;
+    left: auto;
+    right: 8px;
+  }
+  .inline-token {
+    position: static;
+  }
+  .diagram-panel .delivery-step:not(:last-child)::before {
+    z-index: 0;
+  }
+}
+.app.light .secondary {
+  background: #dce8f5;
+  color: #254c69;
+  border-color: #8aa5c64d;
+}
+.app.light .module-metric > span:first-child {
+  color: #426280;
+}
+.app.light .metric-hint {
+  color: #536e89;
+}
+.app.light .overview-control > span,
+.app.light .overview-control button {
+  color: #4a5d87;
+}
+.app.light .operations-empty p {
+  color: #506c88;
+}
+.app.light .attendance-pill {
+  background: #e4f0f7;
+  color: #2e607a;
+  border-color: #6a9cba55;
+}
+.app.light .attendance-pill.checked-in {
+  background: #d9f3e8;
+  color: #176749;
+}
+.app.light .pagination > span,
+.app.light .pagination > div > span,
+.app.light .module-records-toolbar > div > span {
+  color: #536e8d;
+}
+.app.light .operations-panel header .eyebrow {
+  color: #50688d;
+}
+.diagram-panel .delivery-flow .delivery-step.is-followed {
+  --phase: #ffadb8;
+  border: 4px double #ff9faf;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #733947, #322438);
+  box-shadow:
+    0 0 0 4px #ef6e861c,
+    0 8px 26px #b02a4526;
+}
+.legend-following {
+  background: #c14a63;
+  border: 1px solid #ffb2be;
+}
+.light .diagram-panel .delivery-flow .delivery-step.is-followed {
+  --phase: #ae3d55;
+  background: linear-gradient(135deg, #ffe5ec, #fff2f5);
+  border-color: #b2455d;
+  color: #5c2940;
+}
+.is-history .follow-task-token {
+  animation: none;
+}

@@ -161,6 +161,7 @@ function audit(data, entry, title) {
     action: "DAILY_WORK",
     detail: title,
     actor:
+      data.currentActor ||
       data.records.employees.find((e) => e.id === entry.employeeId)?.fullName ||
       "Preview member",
     createdAt: entry.createdAt,
@@ -230,6 +231,7 @@ export function recordDailyUpdate(
     employeeId: employee.id,
     date: asOf,
     summary,
+    reportedBy: data.currentActor || employee.email || employee.fullName,
     minutes,
     progressBefore: Number(task.progress || 0),
     progressAfter: progress,

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   FileText,
   ClipboardList,
@@ -37,6 +38,16 @@ export default function DeliveryFlow({
   reworkCount,
   isToday,
 }) {
+  const [trackingId, setTrackingId] = useState("");
+  const tracked =
+    tasks.find((t) => String(t.id) === trackingId) ||
+    tasks.find((t) => t.stage === 1) ||
+    tasks.find((t) => t.stage === 2) ||
+    tasks[0];
+  useEffect(() => {
+    if (tracked && String(tracked.id) !== trackingId)
+      setTrackingId(String(tracked.id));
+  }, [tracked?.id]);
   return (
     <section className="delivery-flow-panel diagram-panel">
       <header>
@@ -51,6 +62,44 @@ export default function DeliveryFlow({
         </div>
         <span>Click a stage to focus the worklist</span>
       </header>
+      <div className="workflow-task-tracker">
+        <label>
+          Follow assigned task
+          <select
+            aria-label="Follow assigned task"
+            value={tracked?.id || ""}
+            onChange={(e) => setTrackingId(e.target.value)}
+          >
+            {tasks.map((t) => (
+              <option key={t.id} value={t.id}>
+                #{t.id} {t.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        {tracked && (
+          <div>
+            <strong>
+              {tracked.assignees?.map((a) => a.employee?.fullName).join(", ") ||
+                "Unassigned"}
+            </strong>
+            <span>
+              {tracked.reportedProgress ?? tracked.progress ?? 0}% overall ·{" "}
+              {tracked.dayMinutes || 0} min reported ·{" "}
+              {tracked.dueDate
+                ? "Due " + tracked.dueDate.slice(0, 10)
+                : "No deadline"}
+            </span>
+            <button
+              type="button"
+              className="link"
+              onClick={() => onOpenTask?.(tracked)}
+            >
+              Open this work →
+            </button>
+          </div>
+        )}
+      </div>
       <div className="diagram-legend">
         <span>
           <i className="legend-live" /> Double border · work in progress
@@ -60,6 +109,9 @@ export default function DeliveryFlow({
         </span>
         <span>
           <i className="legend-waiting" /> Waiting for approval
+        </span>
+        <span>
+          <i className="legend-following" /> Red box · selected task
         </span>
         <small>Arrows show workflow direction</small>
       </div>
@@ -154,12 +206,20 @@ export default function DeliveryFlow({
               return (
                 <button
                   key={phase.id}
-                  className={`delivery-step phase-${phase.id} ${working ? "has-work" : ""} ${waiting ? "awaiting-review" : ""} ${updates ? "has-reports" : ""} ${selected === phase.id ? "selected" : ""}`}
+                  className={`delivery-step phase-${phase.id} ${tracked?.reportedPhase === phase.id ? "is-followed" : ""} ${working ? "has-work" : ""} ${waiting ? "awaiting-review" : ""} ${updates ? "has-reports" : ""} ${selected === phase.id ? "selected" : ""}`}
                   aria-pressed={selected === phase.id}
                   onClick={() =>
                     onSelect(selected === phase.id ? "all" : phase.id)
                   }
                 >
+                  {tracked?.reportedPhase === phase.id && (
+                    <span
+                      className="follow-task-token"
+                      key={`${tracked.id}-${phase.id}`}
+                    >
+                      <i /> Selected task #{tracked.id}
+                    </span>
+                  )}
                   <span className="delivery-step-top">
                     <i>
                       <Icon size={21} />
@@ -209,6 +269,11 @@ export default function DeliveryFlow({
       >
         <RotateCcw size={18} />
         <span>
+          {tracked?.reportedPhase === "revision" && (
+            <span className="follow-task-token inline-token">
+              <i /> Selected task #{tracked.id}
+            </span>
+          )}
           <strong>Revision & Updates</strong>
           <small>Review → Revision → Build → Review</small>
         </span>

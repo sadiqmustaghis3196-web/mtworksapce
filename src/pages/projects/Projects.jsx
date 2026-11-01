@@ -136,7 +136,12 @@ export default function Projects() {
       const target = tasks.find((t) => t.id === id);
       if (target) setSelected(target);
       else setError("The notification’s task is no longer available.");
-    }
+    } else if (!id)
+      setError((previous) =>
+        previous === "The notification’s task is no longer available."
+          ? ""
+          : previous,
+      );
   }, [tasks, taskParams]);
   const canReview = !!user.effectivePermissions?.canManageTasks;
   const canCreate =

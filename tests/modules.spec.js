@@ -136,7 +136,9 @@ test("recruitment pipeline hires an employee and preserves audit history", async
     await action(page, name);
   await close(page);
   await page.goto("/employees");
-  const row = page.getByRole("row").filter({ hasText: "Zara Ali" });
+  const row = page
+    .locator(".people-directory-card")
+    .filter({ hasText: "Zara Ali" });
   await expect(row).toContainText("Onboarding");
   await page.goto("/dashboard");
   await expect(
@@ -446,7 +448,9 @@ test("intern enrollment, mentor review and completion persist across refresh", a
   await close(page);
   await page.reload();
   await expect(
-    page.getByRole("row").filter({ hasText: "Ali fellowship" }),
+    page
+      .locator(".people-directory-card")
+      .filter({ hasText: "Ali fellowship" }),
   ).toContainText("Completed");
 });
 test("project creation, team assignment and new task appear on their shared board", async ({

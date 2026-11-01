@@ -1,0 +1,660 @@
+.people-directory {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 18px;
+  padding: 20px;
+}
+.people-directory-card {
+  position: relative;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #6f9cbd55;
+  border-radius: 15px;
+  background: linear-gradient(150deg, #1c304a, #17213b);
+  box-shadow: 0 8px 25px #0001;
+  animation: operation-enter 0.25s ease-out;
+}
+.people-directory-card:focus-within,
+.people-directory-card:hover {
+  border-color: #4ccbe4;
+  box-shadow: 0 0 0 3px #48cde811;
+}
+.people-directory-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+.person-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border: 2px solid #60bfe066;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2f4e81, #5e3a8a);
+  color: #e5f8ff;
+  font-weight: 700;
+}
+.directory-person-name {
+  display: block;
+  text-align: left;
+  font-size: 19px;
+  line-height: 1.5;
+  font-weight: 650;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #e2efff;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.people-directory-card p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #b8cce2;
+}
+.people-directory-card small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #a5bddb;
+  overflow-wrap: anywhere;
+}
+.employee-code-link {
+  display: block;
+  border: 0;
+  padding: 8px 0;
+  background: none;
+  color: #7bd7ed;
+  font-size: 11px;
+  cursor: pointer;
+}
+.person-work-totals {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.person-work-totals > span {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 10px;
+  color: #b4c7df;
+}
+.person-work-totals strong {
+  font-size: 23px;
+  color: #dcf0ff;
+}
+.directory-open {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 0 0;
+  margin-top: 15px;
+  border: 0;
+  border-top: 1px solid #8bacce33;
+  background: none;
+  color: #80d9e8;
+  font-size: 12px;
+  cursor: pointer;
+}
+.department-people-dots {
+  display: flex;
+  margin-top: 18px;
+  gap: 6px;
+}
+.department-people-dots span {
+  display: grid;
+  place-items: center;
+  background: #42618c;
+  border: 1px solid #8cafda44;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 10px;
+}
+.person-profile-work,
+.department-profile,
+.attendance-ledger {
+  border: 1px solid #7b9cc744;
+  background: #15243b55;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  min-width: 0;
+}
+.person-profile-work > header,
+.attendance-ledger > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  justify-content: space-between;
+}
+.person-profile-work h3,
+.attendance-ledger h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.person-profile-work header label,
+.attendance-ledger header label {
+  font-size: 10px;
+  min-width: 140px;
+}
+.person-profile-work input,
+.attendance-ledger input,
+.attendance-ledger select {
+  background: #142039;
+  border: 1px solid #738dad55;
+  padding: 8px;
+  border-radius: 7px;
+  color: #dceafa;
+  max-width: 100%;
+  width: 100%;
+}
+.person-assignment-list {
+  display: grid;
+  gap: 8px;
+}
+.person-assignment-list > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #779dcb33;
+  border-radius: 8px;
+  background: #43628b12;
+  color: #cadcf2;
+}
+.person-assignment-list small {
+  display: block;
+  font-size: 10px;
+  margin-top: 8px;
+  line-height: 1.7;
+  color: #94b1d4;
+}
+.person-assignment-list strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.person-assignment-list progress {
+  width: 90px;
+  height: 6px;
+  accent-color: #25bfcd;
+  margin-right: 8px;
+}
+.person-log {
+  border-left: 2px solid #48bdd7;
+  padding: 13px;
+  margin: 10px 0;
+  background: #60a1c20a;
+}
+.person-log strong,
+.person-log p {
+  font-size: 11px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.person-attendance-history > div {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-bottom: 1px solid #809bbe22;
+  font-size: 11px;
+}
+.attendance-person-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.attendance-person-grid article {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #789dc544;
+  border-radius: 10px;
+}
+.attendance-person-grid span:not(.person-avatar) {
+  font-size: 12px;
+  color: #9de2e6;
+}
+.attendance-person-grid small {
+  font-size: 10px;
+  color: #9db6d4;
+}
+.department-delivery-flow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(110px, 1fr));
+  gap: 9px;
+  overflow: auto;
+  padding: 8px 3px 14px;
+}
+.department-delivery-flow > div {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  border: 1px solid #65c5dc77;
+  border-radius: 10px;
+  padding: 15px;
+  background: linear-gradient(130deg, #1a6b7c33, #403d6a33);
+  position: relative;
+}
+.department-delivery-flow strong {
+  font-size: 23px;
+  color: #76d9dd;
+}
+.department-delivery-flow span {
+  font-size: 10px;
+}
+.department-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.department-member-grid a {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #6c91b744;
+  border-radius: 10px;
+  color: #cae1f4;
+}
+.department-member-grid small {
+  font-size: 10px;
+  line-height: 1.6;
+}
+.attendance-ledger .table-wrap {
+  margin-top: 15px;
+}
+.attendance-ledger td,
+.attendance-ledger th {
+  font-size: 11px;
+}
+.light .people-directory-card,
+.light .person-profile-work,
+.light .department-profile,
+.light .attendance-ledger {
+  background: linear-gradient(135deg, #fff, #edf4fd);
+  border-color: #7790b544;
+}
+.light .directory-person-name,
+.light .person-work-totals strong {
+  color: #183855;
+}
+.light .people-directory-card p,
+.light .people-directory-card small,
+.light .person-work-totals span,
+.light .person-assignment-list a,
+.light .person-assignment-list small,
+.light .person-assignment-list > a,
+.light .department-member-grid a,
+.light .attendance-person-grid small {
+  color: #43627e;
+}
+.light .directory-open,
+.light .employee-code-link,
+.light .department-delivery-flow strong,
+.light .attendance-person-grid span:not(.person-avatar) {
+  color: #087c8b;
+}
+.light .person-profile-work input,
+.light .attendance-ledger input,
+.light .attendance-ledger select {
+  background: #fff;
+  color: #173d59;
+}
+@keyframes operation-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .people-directory-card {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .people-directory {
+    padding: 12px;
+    grid-template-columns: 1fr;
+  }
+  .person-profile-work,
+  .department-profile,
+  .attendance-ledger {
+    padding: 13px;
+  }
+  .person-work-totals > span {
+    min-width: 90px;
+  }
+  .people-directory-card {
+    padding: 18px;
+  }
+  .person-assignment-list > a {
+    align-items: flex-start;
+  }
+  .department-delivery-flow {
+    grid-template-columns: repeat(6, 130px);
+  }
+}
+.permission-matrix {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #7193bf44;
+  border-radius: 10px;
+  padding: 15px;
+  background: #5d84bb09;
+  min-width: 0;
+}
+.permission-matrix > label {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+.permission-matrix fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 15px;
+  border: 1px solid #7c9cc444;
+  border-radius: 8px;
+  min-width: 0;
+}
+.permission-matrix legend {
+  text-transform: capitalize;
+  font-weight: 600;
+  color: #75d1e1;
+  padding: 0 7px;
+}
+.permission-matrix .check {
+  min-width: 110px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+.permission-matrix input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #16b8ce;
+}
+.task-edit-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.task-admin-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #789bc544;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 10px;
+  font-size: 10px;
+  color: #9eb7d7;
+}
+.task-delete-confirm {
+  padding: 15px;
+  border: 1px solid #e8657780;
+  background: #6f243322;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+.task-delete-confirm p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.task-delete-confirm button {
+  margin-right: 8px;
+}
+.finance-money-flow {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #40b5b955;
+  border-radius: 13px;
+  background: linear-gradient(140deg, #1b3a4733, #1d254733);
+  min-width: 0;
+}
+.finance-money-flow > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.finance-money-flow h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.finance-money-flow header label {
+  font-size: 10px;
+}
+.finance-money-flow input {
+  background: #132338;
+  color: #daeaff;
+  border: 1px solid #789fc555;
+  padding: 8px;
+  border-radius: 7px;
+}
+.money-flow-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+.money-flow-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #658ca44d;
+  border-radius: 10px;
+  min-width: 0;
+}
+.money-flow-metrics span {
+  font-size: 11px;
+  color: #b9d0e3;
+}
+.money-flow-metrics strong {
+  font-size: 21px;
+  overflow-wrap: anywhere;
+  color: #76e0cf;
+}
+.money-flow-metrics > div:nth-child(2) strong {
+  color: #ffb399;
+}
+.finance-money-flow td,
+.finance-money-flow th {
+  font-size: 11px;
+}
+.finance-money-flow summary {
+  font-size: 12px;
+  padding: 16px 0;
+  cursor: pointer;
+}
+.light .permission-matrix legend {
+  color: #167286;
+}
+.light .task-admin-controls {
+  color: #426784;
+}
+.light .finance-money-flow {
+  background: #eef8fc;
+}
+.light .finance-money-flow input {
+  background: #fff;
+  color: #234e6b;
+}
+.light .money-flow-metrics span {
+  color: #48657a;
+}
+.light .money-flow-metrics strong {
+  color: #08795b;
+}
+.light .money-flow-metrics > div:nth-child(2) strong {
+  color: #a64628;
+}
+@media (max-width: 600px) {
+  .finance-money-flow {
+    padding: 13px;
+  }
+  .money-flow-metrics {
+    grid-template-columns: 1fr;
+  }
+  .money-flow-metrics > div {
+    padding: 14px;
+  }
+  .permission-matrix {
+    padding: 10px;
+  }
+  .permission-matrix .check {
+    min-width: 95px;
+  }
+}
+.access-hierarchy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid #8b79d35a;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #4f357c22, #1d6f8522);
+  min-width: 0;
+}
+.access-hierarchy > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.access-hierarchy strong {
+  font-size: 14px;
+  color: #c4c7ff;
+}
+.access-hierarchy span {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #a8c0dc;
+}
+.access-hierarchy > i {
+  color: #77d7db;
+  font-size: 24px;
+  font-style: normal;
+}
+.department-blueprints {
+  margin: 20px 0;
+  border: 1px dashed #6fafd077;
+  padding: 15px;
+  border-radius: 10px;
+  background: #4e8eb00b;
+}
+.department-blueprints summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #8fd9e8;
+}
+.department-blueprints > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.department-blueprints button {
+  background: #244264;
+  border: 1px solid #7bacc944;
+  color: #d5edff;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11px;
+}
+.department-delivery-flow > div:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -10px;
+  top: 35%;
+  font-size: 16px;
+  color: #7de5e2;
+  z-index: 1;
+}
+.department-delivery-flow > div.has-department-work {
+  border: 3px double #66d1da;
+  padding: 13px;
+}
+.attendance-correction-history {
+  font-size: 10px;
+  line-height: 1.8;
+  max-width: 260px;
+  white-space: normal;
+  margin-top: 9px;
+}
+.attendance-correction-history summary {
+  cursor: pointer;
+  color: #7bd0df;
+}
+.attendance-correction-history > div {
+  border-left: 2px solid #5a9fb5;
+  padding-left: 9px;
+  margin-top: 10px;
+}
+.attendance-correction-history p {
+  font-size: 9px;
+  color: #9bb2d0;
+}
+.light .access-hierarchy {
+  background: linear-gradient(110deg, #edf0ff, #edfaff);
+}
+.light .access-hierarchy strong {
+  color: #354573;
+}
+.light .access-hierarchy span {
+  color: #496785;
+}
+.light .department-blueprints summary,
+.light .attendance-correction-history summary {
+  color: #1d728a;
+}
+.light .department-blueprints button {
+  background: #e4f0fb;
+  color: #2a5872;
+}
+.light .attendance-correction-history p {
+  color: #53738e;
+}
+@media (max-width: 600px) {
+  .access-hierarchy {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .access-hierarchy > i {
+    transform: rotate(90deg);
+    text-align: center;
+  }
+  .department-blueprints {
+    padding: 13px;
+  }
+}

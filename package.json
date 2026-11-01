@@ -22,7 +22,8 @@
     "test:daily": "node --test tests/dailyWork.test.js",
     "test:documents": "node --test tests/taskDocument.test.js",
     "test:notifications": "node --test tests/notifications.test.js",
-    "test:revisions": "node --test tests/revisions.test.js"
+    "test:revisions": "node --test tests/revisions.test.js",
+    "test:operations": "node --test tests/operationsAccess.test.js"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

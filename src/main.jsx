@@ -1,6 +1,5 @@
 import Notifications from "./pages/notifications/Notifications";
 import { isPreview } from "./preview/config";
-import ModuleWorkspace from "./pages/modules/ModuleWorkspace";
 import { modules } from "./modules/catalog";
 import React from "react";
 import { createRoot } from "react-dom/client";
@@ -20,6 +19,17 @@ import Projects from "./pages/projects/Projects";
 import Dashboard from "./pages/dashboard/Dashboard";
 import { State, PageHeader } from "./components/common/UI";
 import "./styles/app.css";
+const ModuleWorkspace = React.lazy(
+  () => import("./pages/modules/ModuleWorkspace"),
+);
+function OperationsModule(props) {
+  return (
+    <React.Suspense fallback={<State loading />}>
+      <ModuleWorkspace {...props} />
+    </React.Suspense>
+  );
+}
+
 function Protected() {
   const { user, loading, error, refresh } = useAuth();
   if (loading) return <State loading />;
@@ -62,7 +72,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route
                 path="projects/manage/*"
-                element={<ModuleWorkspace module="projects" />}
+                element={<OperationsModule module="projects" />}
               />
               {Object.keys(modules)
                 .filter((key) => key !== "projects")
@@ -74,7 +84,7 @@ function App() {
                       key === "notifications" && isPreview ? (
                         <Notifications />
                       ) : (
-                        <ModuleWorkspace module={key} />
+                        <OperationsModule module={key} />
                       )
                     }
                   />

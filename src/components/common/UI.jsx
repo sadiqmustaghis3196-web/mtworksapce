@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useId } from "react";
 import { X, AlertCircle, LoaderCircle, Inbox } from "lucide-react";
 export function State({ error, loading, children }) {
   return (
@@ -22,6 +22,7 @@ export function State({ error, loading, children }) {
   );
 }
 export function Modal({ title, children, onClose, wide = false }) {
+  const titleId = useId();
   const ref = useRef(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -46,13 +47,13 @@ export function Modal({ title, children, onClose, wide = false }) {
     <dialog
       ref={ref}
       className={wide ? "modal wide" : "modal"}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
     >
       <header>
-        <h2 id="dialog-title">{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button className="icon" onClick={onClose} aria-label="Close dialog">
           <X size={20} />
         </button>

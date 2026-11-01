@@ -1,3 +1,4 @@
+import { PersonProfile, DepartmentProfile } from "./PeopleViews";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -40,7 +41,11 @@ function Stats({ items }) {
 }
 export default function RecordOverview({ entity, record, data, onChanged }) {
   const r = (key) => records(data, key),
-    find = (key, id) => r(key).find((v) => v.id === id),
+    find = (key, id) =>
+      r(key).find((v) => v.id === id) ||
+      (key === "employees"
+        ? data.referencePeople?.find((e) => e.id === id)
+        : null),
     currency = r("settings").find((s) => s.name === "Currency")?.value || "PKR",
     money = (value) => moneyLabel(value, currency),
     title = record[entities[entity].title];
@@ -224,8 +229,18 @@ export default function RecordOverview({ entity, record, data, onChanged }) {
             </>
           );
         })()}
+      {entity === "departments" && (
+        <DepartmentProfile record={record} data={data} />
+      )}
+      {entity === "enrollments" && find("employees", record.employeeId) && (
+        <PersonProfile
+          person={find("employees", record.employeeId)}
+          data={data}
+        />
+      )}
       {entity === "employees" && (
         <>
+          <PersonProfile person={record} data={data} />
           <Stats
             items={[
               [

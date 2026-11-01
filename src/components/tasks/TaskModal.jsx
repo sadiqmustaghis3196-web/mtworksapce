@@ -1,3 +1,5 @@
+import { useAuth } from "../../context/AuthContext";
+import { can } from "../../modules/access";
 import RevisionHistory from "./RevisionHistory";
 import TaskDocument from "../documents/TaskDocument";
 import { isPreview } from "../../preview/config";
@@ -13,6 +15,9 @@ export default function TaskModal({
   onTransition,
   canReview,
 }) {
+  const { user } = useAuth();
+  const canEditTask = can(user, "tasks.update");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [record, setRecord] = useState(null),
     [documentDirty, setDocumentDirty] = useState(false),
     [error, setError] = useState(""),
@@ -163,6 +168,52 @@ export default function TaskModal({
       ) : (
         <div className="task-detail">
           <div>
+            {can(user, "tasks.delete") && (
+              <div className="task-admin-controls">
+                <span>Card administration</span>
+                <button
+                  type="button"
+                  className="secondary danger-button"
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  Delete card
+                </button>
+              </div>
+            )}
+            {deleteConfirm && (
+              <div className="task-delete-confirm" role="alert">
+                <p>
+                  Delete this card from the board? Its full record is retained
+                  in the archive and an audit event is recorded.
+                </p>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setDeleteConfirm(false)}
+                >
+                  Keep card
+                </button>
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await api(`/tasks/${task.id}`, { method: "DELETE" });
+                      await onSaved();
+                      onClose();
+                    } catch (e) {
+                      setError(e.message);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Confirm delete card
+                </button>
+              </div>
+            )}
             {isPreview && record.revisions?.length > 0 && (
               <aside className="current-revision-banner">
                 <strong>
@@ -194,6 +245,7 @@ export default function TaskModal({
                   await onSaved();
                 }}
                 onDirty={setDocumentDirty}
+                readOnly={!canEditTask}
               />
             )}
             <div className="detail-heading">
@@ -201,72 +253,74 @@ export default function TaskModal({
               <span className="badge">{stages[record.stage]}</span>
             </div>
             <form onSubmit={save}>
-              <label>
-                Task title
-                <input
-                  name="title"
-                  defaultValue={record.title}
-                  required
-                  minLength={2}
-                />
-              </label>
-              <label>
-                {isPreview ? "Summary (board notes)" : "Description"}
-                <textarea
-                  name="description"
-                  defaultValue={record.description}
-                  rows={5}
-                  placeholder="Describe the work and expected outcome…"
-                />
-              </label>
-              <div className="form-grid">
+              <fieldset className="task-edit-fields" disabled={!canEditTask}>
                 <label>
-                  Priority
-                  <select name="priority" defaultValue={record.priority}>
-                    {["Low", "Medium", "High", "Urgent", "Critical"].map(
-                      (p) => (
-                        <option key={p}>{p}</option>
-                      ),
-                    )}
-                  </select>
-                </label>
-                <label>
-                  Due date
+                  Task title
                   <input
-                    name="dueDate"
-                    type="date"
-                    defaultValue={record.dueDate?.slice(0, 10)}
+                    name="title"
+                    defaultValue={record.title}
+                    required
+                    minLength={2}
                   />
                 </label>
-              </div>
-              {isPreview && (
                 <label>
-                  Start date
-                  <input
-                    name="startDate"
-                    type="date"
-                    defaultValue={record.startDate?.slice(0, 10)}
+                  {isPreview ? "Summary (board notes)" : "Description"}
+                  <textarea
+                    name="description"
+                    defaultValue={record.description}
+                    rows={5}
+                    placeholder="Describe the work and expected outcome…"
                   />
                 </label>
-              )}
-              <label>
-                Progress{" "}
-                <input
-                  name="progress"
-                  type="number"
-                  min="0"
-                  max="99"
-                  disabled={record.stage === 4}
-                  defaultValue={record.progress || 0}
-                />
-              </label>
-              <p className="field-help">
-                Overall progress is separate from daily reporting. Use the Daily
-                dashboard to record time, today’s work and blockers.
-              </p>
-              <button className="primary" disabled={busy}>
-                {busy ? "Saving…" : "Save changes"}
-              </button>
+                <div className="form-grid">
+                  <label>
+                    Priority
+                    <select name="priority" defaultValue={record.priority}>
+                      {["Low", "Medium", "High", "Urgent", "Critical"].map(
+                        (p) => (
+                          <option key={p}>{p}</option>
+                        ),
+                      )}
+                    </select>
+                  </label>
+                  <label>
+                    Due date
+                    <input
+                      name="dueDate"
+                      type="date"
+                      defaultValue={record.dueDate?.slice(0, 10)}
+                    />
+                  </label>
+                </div>
+                {isPreview && (
+                  <label>
+                    Start date
+                    <input
+                      name="startDate"
+                      type="date"
+                      defaultValue={record.startDate?.slice(0, 10)}
+                    />
+                  </label>
+                )}
+                <label>
+                  Progress{" "}
+                  <input
+                    name="progress"
+                    type="number"
+                    min="0"
+                    max="99"
+                    disabled={record.stage === 4}
+                    defaultValue={record.progress || 0}
+                  />
+                </label>
+                <p className="field-help">
+                  Overall progress is separate from daily reporting. Use the
+                  Daily dashboard to record time, today’s work and blockers.
+                </p>
+                <button className="primary" disabled={busy}>
+                  {busy ? "Saving…" : "Save changes"}
+                </button>
+              </fieldset>
             </form>
             <div className="tabs detail-tabs">
               {[
@@ -289,6 +343,7 @@ export default function TaskModal({
               <RevisionHistory
                 task={record}
                 busy={busy}
+                readOnly={!canEditTask}
                 onUpdate={(content) => change("/revision-updates", { content })}
               />
             )}
@@ -311,13 +366,15 @@ export default function TaskModal({
               ))}
             {tab === "Comments" && (
               <>
-                <form onSubmit={comment}>
-                  <label>
-                    Add a comment
-                    <textarea name="content" required maxLength={5000} />
-                  </label>
-                  <button className="secondary">Post comment</button>
-                </form>
+                {canEditTask && (
+                  <form onSubmit={comment}>
+                    <label>
+                      Add a comment
+                      <textarea name="content" required maxLength={5000} />
+                    </label>
+                    <button className="secondary">Post comment</button>
+                  </form>
+                )}
                 {record.updates?.map((c) => (
                   <div className="activity" key={c.id}>
                     <div>
@@ -330,7 +387,7 @@ export default function TaskModal({
             )}
             {tab === "Checklists" && (
               <>
-                {isPreview && (
+                {isPreview && canEditTask && (
                   <form className="inline-task-form" onSubmit={addChecklist}>
                     <label>
                       New checklist
@@ -355,7 +412,7 @@ export default function TaskModal({
                         <input
                           type="checkbox"
                           checked={i.isDone}
-                          disabled={!isPreview || busy}
+                          disabled={!isPreview || !canEditTask || busy}
                           onChange={(e) => {
                             const checked = e.target.checked;
                             setRecord((prev) => ({
@@ -381,7 +438,7 @@ export default function TaskModal({
                         {i.text}
                       </label>
                     ))}
-                    {isPreview && (
+                    {isPreview && canEditTask && (
                       <form
                         className="inline-task-form"
                         onSubmit={(e) => addItem(e, c.id)}
@@ -404,13 +461,15 @@ export default function TaskModal({
             )}
             {tab === "Subtasks" && (
               <>
-                <form className="inline-task-form" onSubmit={subtask}>
-                  <label>
-                    Subtask title
-                    <input name="title" required minLength={2} />
-                  </label>
-                  <button className="secondary">Add subtask</button>
-                </form>
+                {can(user, "tasks.create") && (
+                  <form className="inline-task-form" onSubmit={subtask}>
+                    <label>
+                      Subtask title
+                      <input name="title" required minLength={2} />
+                    </label>
+                    <button className="secondary">Add subtask</button>
+                  </form>
+                )}
                 {subtasks.map((t) => (
                   <div className="activity" key={t.id}>
                     <div>
@@ -426,7 +485,7 @@ export default function TaskModal({
             )}
             {tab === "Attachments" && (
               <>
-                {isPreview && (
+                {isPreview && canEditTask && (
                   <label>
                     Upload attachment
                     <input
@@ -474,7 +533,7 @@ export default function TaskModal({
               <p key={a.id}>{a.employee?.fullName}</p>
             ))}
             {!record.assignees?.length && <p className="muted">No assignees</p>}
-            {isPreview && canReview && (
+            {isPreview && canReview && can(user, "tasks.assign") && (
               <form
                 className="task-assign-form"
                 onSubmit={(e) => {

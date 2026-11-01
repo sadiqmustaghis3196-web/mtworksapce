@@ -3,6 +3,7 @@ export function updateRevisionRound(
   to,
   reason,
   now = new Date().toISOString(),
+  actor = "Preview Admin",
 ) {
   if (to === 6) {
     const text = String(reason || "").trim();
@@ -19,7 +20,7 @@ export function updateRevisionRound(
       number: task.revisions.length + 1,
       reason: text,
       status: "Requested",
-      requestedBy: "Preview Admin",
+      requestedBy: actor,
       requestedAt: now,
       updates: [],
     });
@@ -49,6 +50,7 @@ export function addRevisionUpdate(
   task,
   content,
   now = new Date().toISOString(),
+  actor = "Preview Admin",
 ) {
   const current = task.revisions?.at(-1),
     text = String(content || "").trim();
@@ -59,7 +61,7 @@ export function addRevisionUpdate(
   const entry = {
     id: crypto.randomUUID(),
     content: text,
-    authorName: "Preview Admin",
+    authorName: actor,
     createdAt: now,
   };
   current.updates.push(entry);

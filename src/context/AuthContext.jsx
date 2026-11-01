@@ -18,6 +18,8 @@ export function AuthProvider({ children }) {
   }
   useEffect(() => {
     refresh();
+    window.addEventListener("mt-access-change", refresh);
+    return () => window.removeEventListener("mt-access-change", refresh);
   }, []);
   async function login(body) {
     const data = await api("/auth/login", { method: "POST", body });

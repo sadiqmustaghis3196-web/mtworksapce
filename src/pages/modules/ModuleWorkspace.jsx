@@ -1,3 +1,13 @@
+import FinanceFlow from "./FinanceFlow";
+import { useAuth } from "../../context/AuthContext";
+import {
+  adminUser,
+  can,
+  moduleAllowed,
+  entityModule,
+} from "../../modules/access";
+import { DirectoryCards, AttendanceRoster } from "./PeopleViews";
+import "../../styles/operationsRefinement.css";
 import ModuleOverview from "./ModuleOverview";
 import RecordOverview from "./RecordOverview";
 import { moduleSummary } from "../../modules/insights";
@@ -65,6 +75,8 @@ function download(filename, text, type = "text/csv;charset=utf-8") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export default function ModuleWorkspace({ module }) {
+  const { user } = useAuth();
+  const allow = (action) => moduleAllowed(user, module, action);
   const config = modules[module],
     location = useLocation(),
     navigate = useNavigate(),
@@ -87,7 +99,9 @@ export default function ModuleWorkspace({ module }) {
     [form, setForm] = useState(null),
     [actionForm, setActionForm] = useState(null),
     [confirm, setConfirm] = useState(null),
-    [attendanceEmployee, setAttendanceEmployee] = useState("preview-hamza");
+    [attendanceEmployee, setAttendanceEmployee] = useState(
+      user.employeeId || "preview-hamza",
+    );
   async function load() {
     if (!isPreview) {
       setLoading(false);
@@ -113,10 +127,16 @@ export default function ModuleWorkspace({ module }) {
     setPage(1);
     setStatus("");
     setSearch("");
-    setView("list");
+    setView(
+      ["employees", "departments", "enrollments", "programs"].includes(entity)
+        ? "directory"
+        : ["leads", "creativeRequests"].includes(entity)
+          ? "pipeline"
+          : "list",
+    );
   }, [entity]);
   useEffect(() => {
-    if (routeId === "new" && data && !definition.readOnly)
+    if (routeId === "new" && data && allow("create") && !definition.readOnly)
       setForm({ record: {} });
   }, [routeId, data, entity]);
   const urlParams = new URLSearchParams(location.search);
@@ -285,7 +305,12 @@ export default function ModuleWorkspace({ module }) {
   function related(record) {
     const result = [];
     for (const [key, def] of Object.entries(entities)) {
-      if (key === "auditLogs" || key === "notifications") continue;
+      if (
+        key === "auditLogs" ||
+        key === "notifications" ||
+        !moduleAllowed(user, entityModule(key))
+      )
+        continue;
       for (const field of def.fields.filter((f) => f.ref === entity)) {
         const matches = collection(data, key).filter(
           (r) =>
@@ -299,10 +324,21 @@ export default function ModuleWorkspace({ module }) {
     return result;
   }
   const canEdit = (r) =>
+    (entity !== "roles" || user.isSuperAdmin) &&
+    allow("update") &&
     !definition.readOnly &&
     !definition.immutable &&
     !definition.lockAfter?.includes(r.status);
-  const canDelete = (r) => canEdit(r) && !definition.noCreate;
+  const canDelete = (r) =>
+    allow("delete") &&
+    (entity !== "roles" || user.isSuperAdmin) &&
+    !definition.readOnly &&
+    !definition.immutable &&
+    !definition.lockAfter?.includes(r.status) &&
+    !definition.noCreate &&
+    !definition.noDelete &&
+    !(entity === "users" && r.id === user.id) &&
+    !(entity === "roles" && r.id === "role-super");
   if (!isPreview)
     return (
       <section className="panel">
@@ -313,6 +349,8 @@ export default function ModuleWorkspace({ module }) {
         </p>
       </section>
     );
+  if (!allow("read") && !(module === "admin" && adminUser(user)))
+    return <State error="Your role cannot open this module." />;
   return (
     <>
       <PageHeader eyebrow="WORKSPACE / OPERATIONS" title={config.title}>
@@ -330,46 +368,132 @@ export default function ModuleWorkspace({ module }) {
             <Download size={15} /> Download workspace backup
           </button>
         )}
-        {!definition.readOnly && !definition.noCreate && (
-          <button
-            className="primary"
-            onClick={() => setForm({ record: newRecord() })}
-          >
-            <Plus size={17} /> Add {definition.singular.toLowerCase()}
-          </button>
-        )}
+        {allow("create") &&
+          (entity !== "roles" || user.isSuperAdmin) &&
+          !definition.readOnly &&
+          !definition.noCreate && (
+            <button
+              className="primary"
+              onClick={() => setForm({ record: newRecord() })}
+            >
+              <Plus size={17} />{" "}
+              {module === "crm" && entity === "leads" && !adminUser(user)
+                ? "Add client lead"
+                : `Add ${definition.singular.toLowerCase()}`}
+            </button>
+          )}
       </PageHeader>
       <p className="module-subtitle">{config.subtitle}</p>
-      <div className="module-metrics">
-        {metrics().map(({ label: title, value: count, hint }, i) => (
-          <div className="module-metric" key={title}>
-            <span>{title}</span>
-            <strong>{count}</strong>
-            <small className="metric-hint">{hint}</small>
-            <span className={`metric-symbol symbol-${i}`}>
-              {
-                [
-                  <FolderKanban size={19} />,
-                  <Users size={19} />,
-                  <Clock3 size={19} />,
-                  <Activity size={19} />,
-                ][i]
-              }
-            </span>
+      {module === "admin" && ["users", "roles"].includes(entity) && (
+        <div className="access-hierarchy">
+          <div>
+            <strong>Super Admin</strong>
+            <span>Create admins · assign roles · set permissions</span>
           </div>
-        ))}
-      </div>
-      {data && entity === config.tabs[0][0] && module !== "notifications" && (
-        <div className="overview-control">
-          <span>OPERATIONS OVERVIEW</span>
-          <button onClick={() => setShowOverview((v) => !v)}>
-            {showOverview ? "Hide overview" : "Show overview"}
-          </button>
+          <i>→</i>
+          <div>
+            <strong>Admin</strong>
+            <span>Create employee profiles/accounts · manage operations</span>
+          </div>
+          <i>→</i>
+          <div>
+            <strong>Employee / Intern</strong>
+            <span>Assigned work · own profile · attendance · client leads</span>
+          </div>
         </div>
       )}
-      {data && showOverview && entity === config.tabs[0][0] && (
-        <ModuleOverview module={module} data={data} />
+      {entity === "departments" && allow("create") && (
+        <details className="department-blueprints">
+          <summary>Add a department from a template</summary>
+          <div>
+            {[
+              ["Engineering", "ENG", "Web apps, backend and delivery"],
+              [
+                "Quality Assurance",
+                "QA",
+                "Testing, quality checks and release readiness",
+              ],
+              [
+                "Design & Creative",
+                "DESIGN",
+                "Branding, UI and creative production",
+              ],
+              [
+                "Video & Media",
+                "MEDIA",
+                "Video editing and content production",
+              ],
+              [
+                "Digital Marketing",
+                "MKT",
+                "SEO, social media and campaign delivery",
+              ],
+              [
+                "Sales & Accounts",
+                "SALES",
+                "Leads, clients and account relationships",
+              ],
+              [
+                "People & HR",
+                "HR",
+                "Hiring, employee development and attendance",
+              ],
+              ["Finance", "FIN", "Invoices, payments, expenses and payroll"],
+              [
+                "Client Support",
+                "SUPPORT",
+                "Support tickets and service follow-up",
+              ],
+            ].map(([name, code, description]) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setForm({ record: { name, code, description } })}
+              >
+                {name} +
+              </button>
+            ))}
+          </div>
+        </details>
       )}
+      {user.isSuperAdmin && (
+        <div className="module-metrics">
+          {metrics().map(({ label: title, value: count, hint }, i) => (
+            <div className="module-metric" key={title}>
+              <span>{title}</span>
+              <strong>{count}</strong>
+              <small className="metric-hint">{hint}</small>
+              <span className={`metric-symbol symbol-${i}`}>
+                {
+                  [
+                    <FolderKanban size={19} />,
+                    <Users size={19} />,
+                    <Clock3 size={19} />,
+                    <Activity size={19} />,
+                  ][i]
+                }
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      {user.isSuperAdmin &&
+        data &&
+        entity === config.tabs[0][0] &&
+        module !== "notifications" && (
+          <div className="overview-control">
+            <span>OPERATIONS OVERVIEW</span>
+            <button onClick={() => setShowOverview((v) => !v)}>
+              {showOverview ? "Hide overview" : "Show overview"}
+            </button>
+          </div>
+        )}
+      {user.isSuperAdmin &&
+        data &&
+        showOverview &&
+        entity === config.tabs[0][0] && (
+          <ModuleOverview module={module} data={data} />
+        )}
       <div
         className="module-tabs"
         role="navigation"
@@ -386,6 +510,14 @@ export default function ModuleWorkspace({ module }) {
           </Link>
         ))}
       </div>
+      {entity === "cashbook" && data && <FinanceFlow data={data} />}
+      {entity === "attendance" && data && (
+        <AttendanceRoster
+          data={data}
+          canManage={can(user, "attendance.update")}
+          onEdit={(record) => setForm({ record })}
+        />
+      )}
       {module === "attendance" && data && (
         <div className="attendance-controls panel">
           <div>
@@ -434,7 +566,9 @@ export default function ModuleWorkspace({ module }) {
       {module === "admin" && (
         <p className="module-disclaimer">
           Account and permission changes are saved for preview workflow testing.
-          They do not create real logins or enforce server authorization.
+          Active preview accounts can sign in with the public UI preview
+          password. These permissions apply to browser workflows; server
+          authorization remains a separate deployment phase.
         </p>
       )}
       {module === "finance" && (
@@ -479,7 +613,8 @@ export default function ModuleWorkspace({ module }) {
       {loading ? (
         <State loading />
       ) : (
-        data && (
+        data &&
+        entity !== "attendance" && (
           <section className="module-records">
             <div className="module-records-toolbar">
               <div>
@@ -517,6 +652,23 @@ export default function ModuleWorkspace({ module }) {
                     ))}
                   </select>
                 )}
+                {[
+                  "employees",
+                  "departments",
+                  "enrollments",
+                  "programs",
+                ].includes(entity) && (
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      setView(view === "directory" ? "list" : "directory")
+                    }
+                  >
+                    {view === "directory"
+                      ? "Table view"
+                      : "People / directory view"}
+                  </button>
+                )}
                 {definition.states && (
                   <div className="tabs">
                     <button
@@ -540,7 +692,17 @@ export default function ModuleWorkspace({ module }) {
                 </button>
               </div>
             </div>
-            {view === "pipeline" && definition.states ? (
+            {view === "directory" &&
+            ["employees", "departments", "enrollments", "programs"].includes(
+              entity,
+            ) ? (
+              <DirectoryCards
+                entity={entity}
+                records={visible}
+                data={data}
+                onOpen={(record) => navigate(`${path()}/${record.id}`)}
+              />
+            ) : view === "pipeline" && definition.states ? (
               <div className="module-pipeline">
                 {definition.states.map((state) => (
                   <section key={state}>
@@ -556,15 +718,23 @@ export default function ModuleWorkspace({ module }) {
                         <button
                           key={r.id}
                           className="pipeline-card"
+                          aria-label={displayName(entity, r)}
                           onClick={() => navigate(`${path()}/${r.id}`)}
                         >
                           <strong>{displayName(entity, r)}</strong>
                           <small>
-                            {definition.columns
-                              .filter(
-                                (k) => k !== definition.title && k !== "status",
-                              )
-                              .slice(0, 2)
+                            {(entity === "creativeRequests"
+                              ? ["assigneeId", "dueDate"]
+                              : entity === "leads"
+                                ? ["ownerId", "followUp"]
+                                : definition.columns
+                                    .filter(
+                                      (k) =>
+                                        k !== definition.title &&
+                                        k !== "status",
+                                    )
+                                    .slice(0, 2)
+                            )
                               .map((k) => value(r, k))
                               .join(" · ")}
                           </small>
@@ -751,35 +921,43 @@ export default function ModuleWorkspace({ module }) {
               </div>
             ))}
           </div>
-          {definition.actions?.some((a) =>
-            a.from.includes(selected.status),
-          ) && (
-            <section className="record-workflow">
-              <h3>Workflow actions</h3>
-              <div>
-                {definition.actions
-                  .filter(
-                    (a) =>
-                      a.from.includes(selected.status) &&
-                      !(a.key === "convert" && selected.clientId),
-                  )
-                  .map((a) => (
-                    <button
-                      className={
-                        ["approve", "hire", "convert", "accept"].includes(a.key)
-                          ? "primary"
-                          : "secondary"
-                      }
-                      key={a.key}
-                      onClick={() => startAction(selected, a)}
-                    >
-                      {a.label}
-                      <ArrowUpRight size={14} />
-                    </button>
-                  ))}
-              </div>
-            </section>
-          )}
+          {allow("update") &&
+            definition.actions?.some((a) =>
+              a.from.includes(selected.status),
+            ) && (
+              <section className="record-workflow">
+                <h3>Workflow actions</h3>
+                <div>
+                  {definition.actions
+                    .filter(
+                      (a) =>
+                        a.from.includes(selected.status) &&
+                        !(a.key === "convert" && selected.clientId) &&
+                        !(
+                          entity === "users" &&
+                          selected.id === user.id &&
+                          a.key === "deactivate"
+                        ),
+                    )
+                    .map((a) => (
+                      <button
+                        className={
+                          ["approve", "hire", "convert", "accept"].includes(
+                            a.key,
+                          )
+                            ? "primary"
+                            : "secondary"
+                        }
+                        key={a.key}
+                        onClick={() => startAction(selected, a)}
+                      >
+                        {a.label}
+                        <ArrowUpRight size={14} />
+                      </button>
+                    ))}
+                </div>
+              </section>
+            )}
           {related(selected).map((group) => (
             <section
               className="record-related"

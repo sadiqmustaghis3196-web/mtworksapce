@@ -151,8 +151,9 @@ export default function DocumentEditor({
   task = {},
   saving = false,
   dirty = false,
+  readOnly = false,
 }) {
-  const [mode, setMode] = useState("edit"),
+  const [mode, setMode] = useState(readOnly ? "preview" : "edit"),
     [type, setType] = useState("text"),
     [error, setError] = useState(""),
     [uploading, setUploading] = useState(false);
@@ -217,6 +218,7 @@ export default function DocumentEditor({
           <button
             type="button"
             className={mode === "edit" ? "selected" : ""}
+            disabled={readOnly}
             onClick={() => setMode("edit")}
           >
             Edit document

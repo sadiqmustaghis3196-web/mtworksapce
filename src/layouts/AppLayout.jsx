@@ -1,3 +1,4 @@
+import "../styles/themeRefinement.css";
 import Notifications from "../pages/notifications/Notifications";
 import useNotifications from "../hooks/useNotifications";
 import { isPreview } from "../preview/config";
@@ -204,7 +205,7 @@ export default function AppLayout() {
             ).length,
             checkedIn: data.records.attendance.some(
               (a) =>
-                a.employeeId === "preview-hamza" &&
+                a.employeeId === (user.employeeId || "preview-hamza") &&
                 a.date === today &&
                 !a.checkOut,
             ),
@@ -380,9 +381,11 @@ export default function AppLayout() {
               <strong>UI PREVIEW</strong> Sample data · saved only in this
               browser
             </span>
-            <button onClick={() => setResetConfirm(true)}>
-              Reset sample data
-            </button>
+            {user.isSuperAdmin && (
+              <button onClick={() => setResetConfirm(true)}>
+                Reset sample data
+              </button>
+            )}
           </div>
         )}
         {resetConfirm && (

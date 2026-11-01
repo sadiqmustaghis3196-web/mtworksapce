@@ -1,3 +1,16 @@
+import { correctAttendance } from "../modules/peopleOperations";
+import {
+  hydrateAccess,
+  accountUser,
+  requireAccess,
+  protectAccountChange,
+  entityModule,
+  moduleKey,
+  adminUser,
+  ownTask,
+  ownData,
+  can,
+} from "../modules/access";
 import {
   updateRevisionRound,
   addRevisionUpdate,
@@ -68,13 +81,31 @@ export function resetPreview() {
 }
 export async function previewApi(path, { method = "GET", body = {} } = {}) {
   if (path === "/auth/login" && method === "POST") {
-    if (
-      body.email?.trim().toLowerCase() !== previewCredentials.email ||
-      body.password !== previewCredentials.password
-    )
-      fail("Use the UI preview email and password shown on this page.", 401);
-    sessionStorage.setItem(SESSION_KEY, "active");
-    return { user: previewUser };
+    const world = hydrateAccess(hydrateDailyWork(hydrateWorkspace(load())));
+    const account = world.records.users.find(
+      (u) =>
+        u.email.toLowerCase() === body.email?.trim().toLowerCase() &&
+        u.status === "Active",
+    );
+    if (!account || body.password !== previewCredentials.password)
+      fail(
+        "Use the UI preview password shown on the form and an active preview account email.",
+        401,
+      );
+    sessionStorage.setItem(SESSION_KEY, account.id);
+    const signedIn = accountUser(world, account.id);
+    sessionStorage.setItem(
+      "mt-daily-dashboard-view",
+      JSON.stringify({
+        role: ["SUPER_ADMIN", "ADMIN", "INTERN"].includes(signedIn.primaryRole)
+          ? signedIn.primaryRole
+          : "EMPLOYEE",
+        profileId: signedIn.employeeId || "preview-hamza",
+        focusId: "all",
+      }),
+    );
+    save(world);
+    return { user: accountUser(world, account.id) };
   }
   if (path === "/auth/logout") {
     sessionStorage.removeItem(SESSION_KEY);
@@ -88,46 +119,152 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     fail(
       "Password changes and email delivery are unavailable in UI preview. Use the displayed test login.",
     );
-  if (sessionStorage.getItem(SESSION_KEY) !== "active")
-    fail("Sign in to the UI preview.", 401);
-  if (path === "/auth/me") return { user: previewUser };
-  const data = hydrateDailyWork(hydrateWorkspace(load()));
+  const data = hydrateAccess(hydrateDailyWork(hydrateWorkspace(load())));
+  const stored = sessionStorage.getItem(SESSION_KEY);
+  const user = accountUser(
+    data,
+    stored === "active" ? "ui-preview-user" : stored,
+  );
+  if (!user) fail("Sign in to an active UI preview account.", 401);
+  if (path === "/auth/me") return { user };
+  data.currentActor = user.email;
+  const ownOptions = (options) =>
+    adminUser(user)
+      ? options
+      : {
+          role: user.primaryRole === "INTERN" ? "INTERN" : "EMPLOYEE",
+          profileId: user.employeeId,
+        };
+  const entityMatch = path.match(/^\/workspace\/([A-Za-z]+)(?:\/([^/]+))?/);
+  if (entityMatch && entityMatch[1] !== "data") {
+    const entity = entityMatch[1],
+      module = entityModule(entity);
+    const action =
+      method === "GET"
+        ? "read"
+        : method === "DELETE"
+          ? "delete"
+          : method === "POST" &&
+              !path.includes("/actions/") &&
+              !["check-in", "check-out"].includes(entityMatch[2])
+            ? "create"
+            : "update";
+    const ownAttendance =
+      entity === "attendance" &&
+      ["check-in", "check-out"].includes(entityMatch[2]) &&
+      body.employeeId === user.employeeId;
+    const ownNotification =
+      entity === "notifications" &&
+      notificationFeed(data, ownOptions({})).items.some(
+        (n) => n.id === entityMatch[2],
+      );
+    if (!ownAttendance && !ownNotification)
+      requireAccess(user, `${moduleKey(module)}.${action}`);
+    if (
+      !adminUser(user) &&
+      [
+        "employees",
+        "attendance",
+        "enrollments",
+        "documents",
+        "leaves",
+      ].includes(entity) &&
+      entityMatch[2] &&
+      !["check-in", "check-out"].includes(entityMatch[2]) &&
+      !can(user, `${moduleKey(module)}.manage`) &&
+      !can(user, `${moduleKey(module)}.update`) &&
+      !can(user, `${moduleKey(module)}.create`) &&
+      !can(user, `${moduleKey(module)}.delete`)
+    ) {
+      const record = data.records[entity]?.find((r) => r.id === entityMatch[2]);
+      if (record && (record.employeeId || record.id) !== user.employeeId)
+        fail("This employee record is outside your access.", 403);
+    }
+    protectAccountChange(
+      data,
+      user,
+      entity,
+      entityMatch[2],
+      path.endsWith("/actions/deactivate")
+        ? { ...body, status: "Inactive" }
+        : body,
+      method,
+    );
+  }
+  if (path.startsWith("/tasks")) {
+    if (method === "GET") requireAccess(user, "tasks.read");
+    const id = Number(path.split("/")[2]),
+      task = data.tasks.find((t) => t.id === id);
+    if (id && !ownTask(user, task) && !can(user, "tasks.assign"))
+      fail("This task is not assigned to you.", 403);
+    if (method !== "GET") {
+      let perm =
+        method === "DELETE"
+          ? "tasks.delete"
+          : path === "/tasks"
+            ? "tasks.create"
+            : path.endsWith("/assign")
+              ? "tasks.assign"
+              : body.targetStage === 4
+                ? "tasks.approve"
+                : body.targetStage === 5
+                  ? "tasks.reject"
+                  : body.targetStage === 6
+                    ? "tasks.approve"
+                    : body.targetStage === 3
+                      ? "tasks.submit_review"
+                      : "tasks.update";
+      requireAccess(user, perm);
+    }
+  }
   const dailyURL = new URL(path, "http://preview.local");
   if (dailyURL.pathname === "/notifications/feed" && method === "GET") {
-    const options = Object.fromEntries(
-      ["role", "profileId"]
-        .filter((k) => dailyURL.searchParams.has(k))
-        .map((k) => [k, dailyURL.searchParams.get(k)]),
+    const options = ownOptions(
+      Object.fromEntries(
+        ["role", "profileId"]
+          .filter((k) => dailyURL.searchParams.has(k))
+          .map((k) => [k, dailyURL.searchParams.get(k)]),
+      ),
     );
     const { created, ...feed } = refreshNotificationFeed(data, options);
     if (created) save(data);
     return { data: feed };
   }
   if (path === "/notifications/read-all" && method === "POST") {
-    const feed = notificationFeed(data, {
-      role: body.role,
-      profileId: body.profileId,
-    });
+    const feed = notificationFeed(
+      data,
+      ownOptions({ role: body.role, profileId: body.profileId }),
+    );
     for (const n of feed.items) n.status = "Read";
     save(data);
     return { success: true };
   }
   if (dailyURL.pathname === "/dashboard/daily" && method === "GET") {
-    const options = Object.fromEntries(
-      ["role", "profileId", "focusId", "date"]
-        .filter((key) => dailyURL.searchParams.has(key))
-        .map((key) => [key, dailyURL.searchParams.get(key)]),
+    const options = ownOptions(
+      Object.fromEntries(
+        ["role", "profileId", "focusId", "date"]
+          .filter((key) => dailyURL.searchParams.has(key))
+          .map((key) => [key, dailyURL.searchParams.get(key)]),
+      ),
     );
-    const created = syncDailyReminders(data, options);
+    const dashboardData = can(user, "tasks.read")
+      ? data
+      : { ...data, tasks: [] };
+    const created = syncDailyReminders(dashboardData, options);
     if (created) save(data);
-    return { data: dailyDashboard(data, options) };
+    return { data: dailyDashboard(dashboardData, options) };
   }
   if (path === "/dashboard/daily/update" && method === "POST") {
+    if (!adminUser(user) && body.employeeId !== user.employeeId)
+      fail("Record your own daily work only.", 403);
+    requireAccess(user, "tasks.update");
     const entry = recordDailyUpdate(data, body);
     save(data);
     return { data: entry };
   }
   if (path === "/dashboard/daily/plan" && method === "POST") {
+    if (!adminUser(user) && body.employeeId !== user.employeeId)
+      fail("Plan your own assigned work only.", 403);
     const plan = planDailyTask(data, body);
     save(data);
     return { data: plan };
@@ -135,7 +272,7 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
   if (path === "/dashboard/daily/preferences" && method === "PATCH") {
     const preferences = saveReminderPreferences(
       data,
-      body.profileId,
+      adminUser(user) ? body.profileId : user.employeeId,
       body.preferences || {},
     );
     save(data);
@@ -154,12 +291,54 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     save(data);
     return { data: n };
   }
+  if (
+    entityMatch?.[1] === "attendance" &&
+    ["POST", "PATCH"].includes(method) &&
+    !["check-in", "check-out"].includes(entityMatch[2])
+  ) {
+    requireAccess(
+      user,
+      method === "POST" ? "attendance.create" : "attendance.update",
+    );
+    const record = correctAttendance(data, entityMatch[2], body, user);
+    save(data);
+    return { data: record };
+  }
+  if (
+    entityMatch &&
+    ["leads", "opportunities", "salesActivities"].includes(entityMatch[1]) &&
+    method === "POST" &&
+    !path.includes("/actions/") &&
+    !adminUser(user) &&
+    !can(user, "crm.manage")
+  )
+    body.ownerId = user.employeeId;
   if (path.startsWith("/workspace/")) {
     const result = workspaceRequest(data, path, { method, body });
-    if (method !== "GET") save(data);
+    if (method !== "GET") {
+      save(data);
+      if (["users", "roles"].includes(entityMatch?.[1]))
+        window.dispatchEvent(new Event("mt-access-change"));
+    }
+    if (path === "/workspace/data" && method === "GET")
+      return { data: ownData(result.data, user) };
+    if (method === "GET" && !adminUser(user) && entityMatch) {
+      const scoped = ownData(data, user),
+        key = entityMatch[1],
+        list = key === "projects" ? scoped.projects : scoped.records[key];
+      if (list) {
+        if (entityMatch[2]) {
+          const record = list.find((r) => r.id === entityMatch[2]);
+          if (!record) fail("This record is outside your access.", 403);
+          return { data: record };
+        }
+        return { data: list };
+      }
+    }
     return result;
   }
-  if (path === "/projects" && method === "GET") return { data: data.projects };
+  if (path === "/projects" && method === "GET")
+    return { data: ownData(data, user).projects };
   if (path === "/dashboard/overview")
     return {
       data: {
@@ -207,7 +386,11 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     };
   if (path === "/tasks") {
     if (method === "GET")
-      return { data: data.tasks.map((t) => decorate(t, data)) };
+      return {
+        data: data.tasks
+          .filter((t) => ownTask(user, t) || can(user, "tasks.assign"))
+          .map((t) => decorate(t, data)),
+      };
     if (method === "POST") {
       if (!body.title?.trim() || body.title.trim().length < 2)
         fail("Enter a task title of at least 2 characters.");
@@ -231,7 +414,12 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
       const task = {
         ...body,
         documentBlocks,
-        id: Math.max(100, ...data.tasks.map((t) => t.id)) + 1,
+        id:
+          Math.max(
+            100,
+            ...data.tasks.map((t) => t.id),
+            ...(data.archivedTasks || []).map((t) => t.id),
+          ) + 1,
         stage: 0,
         progress: 0,
         createdAt: new Date().toISOString(),
@@ -293,6 +481,30 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     const task = data.tasks.find((t) => t.id === Number(match[1]));
     if (!task) fail("Preview task not found.", 404);
     if (method === "GET") return { data: decorate(task, data) };
+    if (method === "DELETE" && !match[2]) {
+      if (data.tasks.some((t) => t.parentTaskId === task.id))
+        fail("Delete or reassign subtasks first.");
+      if (data.records.creativeRequests.some((r) => r.taskId === task.id))
+        fail(
+          "This card is linked to Creative Studio. Close that workflow before deleting the card.",
+        );
+      task.deletedAt = new Date().toISOString();
+      task.deletedBy = user.id;
+      data.archivedTasks ??= [];
+      data.archivedTasks.push(task);
+      data.tasks = data.tasks.filter((t) => t.id !== task.id);
+      data.records.auditLogs.unshift({
+        id: crypto.randomUUID(),
+        entity: "tasks",
+        recordId: String(task.id),
+        action: "DELETED",
+        actor: user.email,
+        detail: `Task #${task.id} ${task.title} archived`,
+        createdAt: task.deletedAt,
+      });
+      save(data);
+      return { success: true };
+    }
     if (match[2] === "transition" && method === "POST") {
       const allowed = {
         0: [1],
@@ -307,7 +519,13 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         fail("This preview stage transition is not allowed.", 409);
       if (body.targetStage === 5 && !body.reason?.trim())
         fail("A rejection reason is required.");
-      updateRevisionRound(task, body.targetStage, body.reason);
+      updateRevisionRound(
+        task,
+        body.targetStage,
+        body.reason,
+        undefined,
+        user.name || user.email,
+      );
       task.activities.unshift({
         id: crypto.randomUUID(),
         fromStage: task.stage,
@@ -335,11 +553,11 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
           }[task.stage] || creative.status;
       if (task.stage === 4) {
         task.progress = 100;
-        task.approvedBy = "Preview Admin";
+        task.approvedBy = user.name || user.email;
         task.rejectReason = null;
       }
       if (task.stage === 5) {
-        task.rejectedBy = "Preview Admin";
+        task.rejectedBy = user.name || user.email;
         task.rejectReason = body.reason;
       }
       const recipients =
@@ -374,7 +592,12 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
           createdAt: new Date().toISOString(),
         });
     } else if (match[2] === "revision-updates" && method === "POST") {
-      const entry = addRevisionUpdate(task, body.content);
+      const entry = addRevisionUpdate(
+        task,
+        body.content,
+        undefined,
+        user.name || user.email,
+      );
       data.records.notifications.unshift({
         id: crypto.randomUUID(),
         title: "Revision work update",
@@ -387,7 +610,7 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
       if (!body.content?.trim()) fail("Enter a comment.");
       task.updates.unshift({
         id: crypto.randomUUID(),
-        authorName: "Preview Admin",
+        authorName: user.name || user.email,
         content: body.content,
         createdAt: new Date().toISOString(),
       });
@@ -437,7 +660,7 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         fileType: file.type,
         fileSize: `${Math.ceil(file.size / 1024)} KB`,
         fileUrl: file.data,
-        uploadedBy: "Preview Admin",
+        uploadedBy: user.name || user.email,
         createdAt: new Date().toISOString(),
       });
     } else if (!match[2] && method === "PATCH") {

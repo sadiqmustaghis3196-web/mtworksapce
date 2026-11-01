@@ -1,4 +1,9 @@
-export default function RevisionHistory({ task, onUpdate, busy }) {
+export default function RevisionHistory({
+  task,
+  onUpdate,
+  busy,
+  readOnly = false,
+}) {
   return (
     <section className="revision-history" id="revision-task-history">
       <p className="field-help">
@@ -32,29 +37,31 @@ export default function RevisionHistory({ task, onUpdate, busy }) {
                 </small>
               </div>
             ))}
-            {index === 0 && !["Approved", "Superseded"].includes(r.status) && (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget;
-                  if (await onUpdate(new FormData(form).get("content")))
-                    form.reset();
-                }}
-              >
-                <label>
-                  Revision work update
-                  <textarea
-                    name="content"
-                    minLength={3}
-                    maxLength={5000}
-                    required
-                  />
-                </label>
-                <button className="secondary" disabled={busy}>
-                  Post revision update
-                </button>
-              </form>
-            )}
+            {!readOnly &&
+              index === 0 &&
+              !["Approved", "Superseded"].includes(r.status) && (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    if (await onUpdate(new FormData(form).get("content")))
+                      form.reset();
+                  }}
+                >
+                  <label>
+                    Revision work update
+                    <textarea
+                      name="content"
+                      minLength={3}
+                      maxLength={5000}
+                      required
+                    />
+                  </label>
+                  <button className="secondary" disabled={busy}>
+                    Post revision update
+                  </button>
+                </form>
+              )}
           </article>
         ))
       ) : (

@@ -1,3 +1,7 @@
+import PermissionMatrix from "../../components/common/PermissionMatrix";
+import { useAuth } from "../../context/AuthContext";
+import { roleLevel } from "../../modules/access";
+import { localAttendanceTime } from "../../modules/peopleOperations";
 import { useState, useRef, useId } from "react";
 import {
   formDefaults,
@@ -19,9 +23,15 @@ export default function RecordForm({
   onSubmit,
   submitLabel = "Save record",
 }) {
+  const { user } = useAuth();
   const touched = useRef(new Set()),
     prefix = useId();
   const initial = formDefaults(entity, data, record);
+  if (entity === "attendance") {
+    initial.checkIn = localAttendanceTime(record.checkIn);
+    initial.checkOut = localAttendanceTime(record.checkOut);
+    initial.correctionReason = "";
+  }
   const [values, setValues] = useState(() =>
       Object.fromEntries(
         fields.map((f) => [
@@ -41,6 +51,14 @@ export default function RecordForm({
     touched.current.add(key);
     setValues((previous) => {
       const next = { ...previous, [key]: value };
+      if (
+        entity === "roles" &&
+        key === "level" &&
+        ["ADMIN", "SUPER_ADMIN"].includes(value)
+      )
+        next.permissions = [
+          ...fields.find((f) => f.key === "permissions").options,
+        ];
       if (
         entity === "payroll" &&
         key === "employeeId" &&
@@ -140,9 +158,12 @@ export default function RecordForm({
                 ? (f.ref === "projects" ? data.projects : data.records[f.ref])
                     .filter(
                       (r) =>
-                        f.key !== "projectId" ||
-                        !values.clientId ||
-                        r.clientId === values.clientId,
+                        (f.key !== "roleId" ||
+                          user.isSuperAdmin ||
+                          !["SUPER_ADMIN", "ADMIN"].includes(roleLevel(r))) &&
+                        (f.key !== "projectId" ||
+                          !values.clientId ||
+                          r.clientId === values.clientId),
                     )
                     .map((r) => ({ value: r.id, label: displayName(f.ref, r) }))
                 : f.options?.map((o) => ({ value: o, label: o }));
@@ -182,26 +203,15 @@ export default function RecordForm({
                     required={f.required}
                   />
                 ) : f.type === "permissions" ? (
-                  <div className="permission-options">
-                    {choices.map((o) => (
-                      <label className="check" key={o.value}>
-                        <input
-                          aria-label={o.label}
-                          type="checkbox"
-                          checked={value.includes(o.value)}
-                          onChange={(e) =>
-                            set(
-                              f.key,
-                              e.target.checked
-                                ? [...value, o.value]
-                                : value.filter((v) => v !== o.value),
-                            )
-                          }
-                        />
-                        {o.label}
-                      </label>
-                    ))}
-                  </div>
+                  <PermissionMatrix
+                    value={value}
+                    options={f.options}
+                    readOnly={
+                      entity === "roles" &&
+                      ["ADMIN", "SUPER_ADMIN"].includes(values.level)
+                    }
+                    onChange={(v) => set(f.key, v)}
+                  />
                 ) : f.type === "file" ? (
                   <>
                     <input

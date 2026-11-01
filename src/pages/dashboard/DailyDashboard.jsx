@@ -1,3 +1,5 @@
+import { useAuth } from "../../context/AuthContext";
+import { adminUser } from "../../modules/access";
 import RevisionRequestForm from "../../components/tasks/RevisionRequestForm";
 import { cardSurfaceClick } from "../../modules/taskInteraction";
 import { useEffect, useState } from "react";
@@ -36,6 +38,7 @@ function initialView() {
   return { role: "SUPER_ADMIN", profileId: "preview-hamza", focusId: "all" };
 }
 export default function DailyDashboard() {
+  const { user } = useAuth();
   const [view, setView] = useState(initialView),
     [date, setDate] = useState(today),
     [data, setData] = useState(null),
@@ -218,42 +221,58 @@ export default function DailyDashboard() {
         className="daily-view-toolbar"
         aria-label="Dashboard view controls"
       >
-        <label>
-          Dashboard view
-          <select
-            aria-label="Dashboard view"
-            value={view.role}
-            onChange={(e) =>
-              setView((v) => ({ ...v, role: e.target.value, focusId: "all" }))
-            }
-          >
-            {dashboardRoles.map(([value, label]) => (
-              <option value={value} key={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Profile perspective
-          <select
-            aria-label="Profile perspective"
-            value={view.profileId}
-            onChange={(e) =>
-              setView((v) => ({
-                ...v,
-                profileId: e.target.value,
-                focusId: "all",
-              }))
-            }
-          >
-            {workspace?.records.employees.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.fullName}
-              </option>
-            ))}
-          </select>
-        </label>
+        {adminUser(user) && (
+          <>
+            <label>
+              Dashboard view
+              <select
+                aria-label="Dashboard view"
+                value={view.role}
+                onChange={(e) =>
+                  setView((v) => ({
+                    ...v,
+                    role: e.target.value,
+                    focusId: "all",
+                  }))
+                }
+              >
+                {dashboardRoles.map(([value, label]) => (
+                  <option value={value} key={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Profile perspective
+              <select
+                aria-label="Profile perspective"
+                value={view.profileId}
+                onChange={(e) =>
+                  setView((v) => ({
+                    ...v,
+                    profileId: e.target.value,
+                    focusId: "all",
+                  }))
+                }
+              >
+                {workspace?.records.employees.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+        {!adminUser(user) && (
+          <div>
+            <strong>{user.name}</strong>
+            <small className="field-help">
+              Your assignments, daily work and deadlines
+            </small>
+          </div>
+        )}
         <div className="daily-date-control">
           <button
             className="icon"

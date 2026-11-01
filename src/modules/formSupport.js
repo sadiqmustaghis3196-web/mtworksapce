@@ -2,6 +2,26 @@ import { today, toCents, fromCents } from "./store.js";
 export function formDefaults(entity, data, record = {}) {
   const day = today(),
     defaults = {};
+  if (
+    ["leads", "opportunities", "salesActivities"].includes(entity) &&
+    data.records.employees.length === 1
+  )
+    defaults.ownerId = data.records.employees[0].id;
+  if (entity === "roles")
+    defaults.level =
+      record.level ||
+      (["SUPER_ADMIN", "ADMIN", "INTERN"].includes(record.name)
+        ? record.name
+        : "EMPLOYEE");
+  if (entity === "cashbook")
+    Object.assign(defaults, {
+      date: day,
+      direction: "Money out",
+      account: "Bank",
+      counterpartyType: "Vendor",
+    });
+  if (entity === "attendance")
+    Object.assign(defaults, { date: day, breakMinutes: 0 });
   if (entity === "employees")
     Object.assign(defaults, {
       joiningDate: day,

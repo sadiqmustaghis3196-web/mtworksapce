@@ -626,6 +626,20 @@ function validateRecord(data, key, record, current) {
     if (!Number.isSafeInteger(nextTotal))
       invalid("Invoice amount is too large.");
   }
+  if (key === "cashbook") {
+    if (toCents(record.amount) <= 0)
+      invalid("Enter a positive cash movement amount.");
+    if (record.counterpartyType === "Client" && !record.clientId)
+      invalid("Link this client movement to its client.");
+    if (
+      rows(data, "cashbook").some(
+        (r) =>
+          r.id !== record.id &&
+          r.reference.toLowerCase() === record.reference.toLowerCase(),
+      )
+    )
+      invalid("Transaction reference must be unique.");
+  }
   if (key === "payments") {
     const invoice = rows(data, "invoices").find(
       (i) => i.id === record.invoiceId,
@@ -677,7 +691,7 @@ function event(data, key, record, action, detail) {
     recordId: record.id,
     action,
     detail,
-    actor: "Preview Admin",
+    actor: data.currentActor || "Preview Admin",
     createdAt: time,
   });
   if (key !== "notifications")
@@ -734,7 +748,12 @@ function linkedTask(data, record, targetStage, reason) {
       (e) => e.id === record.assigneeId,
     );
     task = {
-      id: Math.max(100, ...data.tasks.map((t) => t.id)) + 1,
+      id:
+        Math.max(
+          100,
+          ...data.tasks.map((t) => t.id),
+          ...(data.archivedTasks || []).map((t) => t.id),
+        ) + 1,
       title: record.title,
       description: record.brief,
       category: record.type,
@@ -753,7 +772,13 @@ function linkedTask(data, record, targetStage, reason) {
     data.tasks.push(task);
     record.taskId = task.id;
   }
-  updateRevisionRound(task, targetStage, reason);
+  updateRevisionRound(
+    task,
+    targetStage,
+    reason,
+    undefined,
+    data.currentActor || "Preview Admin",
+  );
   task.activities.unshift({
     id: id("activity"),
     fromStage: task.stage,
@@ -773,6 +798,8 @@ export function mutateRecord(data, key, method, recordId, input = {}) {
   if (definition.readOnly || (definition.immutable && method !== "POST"))
     invalid("This record is read-only.");
   if (method === "DELETE") {
+    if (definition.noDelete)
+      invalid("Historical records are corrected with a reason, not deleted.");
     if (definition.noCreate || definition.lockAfter?.includes(current.status))
       invalid("This record cannot be removed in its current state.");
     for (const [related, config] of Object.entries(entities))
@@ -815,6 +842,15 @@ export function mutateRecord(data, key, method, recordId, input = {}) {
     invalid("New workspace settings are not supported.");
   if (current && definition.lockAfter?.includes(current.status))
     invalid("This record is locked after submission or approval.");
+  if (key === "roles" && input.level === undefined && !current?.level)
+    input = {
+      ...input,
+      level: ["SUPER_ADMIN", "ADMIN", "INTERN"].includes(
+        input.name || current?.name,
+      )
+        ? input.name || current.name
+        : "EMPLOYEE",
+    };
   const fields = validateFields(data, definition, input, current || {});
   const record = {
     ...current,
@@ -971,6 +1007,8 @@ export function performAction(data, key, recordId, actionKey, input = {}) {
       `Converted won lead ${record.company} to client.`,
     );
   }
+  if (["payroll", "expenses"].includes(key) && actionKey === "record")
+    record.recordedAt = now();
   Object.assign(record, fields, { status: action.to, updatedAt: now() });
   event(
     data,
@@ -1007,12 +1045,21 @@ export function checkAttendance(data, employeeId, operation) {
   } else {
     if (!record || record.checkOut)
       invalid("No active check-in to close for this employee today.");
+    if (Date.now() < Date.parse(record.checkIn))
+      invalid("Check-out cannot be before the recorded arrival.");
+    const elapsed = Math.floor(
+      (Date.now() - Date.parse(record.checkIn)) / 60000,
+    );
+    if (Number(record.breakMinutes || 0) > elapsed)
+      invalid(
+        "The unpaid break cannot exceed the shift. Correct the break before checking out.",
+      );
     record.checkOut = now();
     record.minutes = Math.max(
       0,
       Math.floor(
         (Date.parse(record.checkOut) - Date.parse(record.checkIn)) / 60000,
-      ),
+      ) - Number(record.breakMinutes || 0),
     );
     record.status = "Checked out";
   }

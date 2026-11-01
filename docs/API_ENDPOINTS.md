@@ -58,3 +58,13 @@ Task stage transitions also persist recipient notifications, tagged with eventTy
 ## Browser-only revision workflow
 
 Preview `POST /tasks/:id/transition` now accepts targetStage 6 with required `reason` from stages 2, 3 or 4. Stage 6 returns to 2. Existing 0–5 stage IDs retain their meanings. Revision state is stored in task.revisions with round number, instructions, status, timestamps and updates. `POST /tasks/:id/revision-updates` with content adds an update to the latest open round and a matching task comment. Approved/superseded rounds cannot be updated. Real server schemas/migrations are unchanged; these routes are browser adapter additions.
+
+## Role-aware preview operations
+
+Preview login resolves an active record in `records.users` and its role. Every active preview account uses the existing public UI-preview password; session storage identifies the preview account. `/auth/me` derives current permissions so role changes take effect. Super Admin/Admin have full operational rights; role/admin-account changes and self-access protections are checked in `access.js`. Workspace/task mutations use explicit action permissions. Own records/tasks are scoped for non-admin preview users, and dashboard/notification query parameters cannot impersonate another account. This is browser adapter behavior, not server authentication.
+
+- `DELETE /tasks/:id`: permission-checked archive plus audit; existing dependent-workflow rules apply.
+- `POST /workspace/attendance`, `PATCH /workspace/attendance/:id`: manual entry/correction with employeeId, date, PKT datetime-local checkIn/checkOut, breakMinutes and required correctionReason. Before/after values persist. Attendance deletion is disallowed.
+- `/workspace/cashbook`: existing generic CRUD/actions mechanism for reference, direction, account, counterpartyType/name, client/project, amount/date/purpose/receipt. `post` locks and includes a movement; `void` requires a reason and excludes it from cash-flow totals while retaining history.
+
+Accounts/roles, attendance and cashbook remain browser-local. Real Express routes, database migrations, password hashing and cross-device sessions have not been introduced in this phase.

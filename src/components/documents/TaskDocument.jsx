@@ -3,7 +3,12 @@ import DocumentEditor from "./DocumentEditor";
 import { taskDocument, validateDocument } from "../../modules/taskDocument";
 import { api } from "../../services/api";
 import { stages } from "../tasks/TaskCard";
-export default function TaskDocument({ task, onSaved, onDirty }) {
+export default function TaskDocument({
+  task,
+  onSaved,
+  onDirty,
+  readOnly = false,
+}) {
   const [blocks, setBlocks] = useState(() => taskDocument(task)),
     [dirty, setDirty] = useState(false),
     [saving, setSaving] = useState(false),
@@ -71,7 +76,8 @@ export default function TaskDocument({ task, onSaved, onDirty }) {
           setDirty(true);
           setMessage("");
         }}
-        onSave={save}
+        onSave={readOnly ? undefined : save}
+        readOnly={readOnly}
         saving={saving}
         dirty={dirty}
       />
