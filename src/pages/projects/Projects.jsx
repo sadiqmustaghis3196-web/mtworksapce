@@ -1,3 +1,4 @@
+import RevisionRequestForm from "../../components/tasks/RevisionRequestForm";
 import { availableStages } from "../../modules/taskInteraction";
 import DocumentEditor from "../../components/documents/DocumentEditor";
 import { validateDocument } from "../../modules/taskDocument";
@@ -57,6 +58,7 @@ export default function Projects() {
     [notice, setNotice] = useState(""),
     [selected, setSelected] = useState(null),
     [adding, setAdding] = useState(null),
+    [revisionRequest, setRevisionRequest] = useState(null),
     [reject, setReject] = useState(null),
     [busy, setBusy] = useState(false);
   const [dragTask, setDragTask] = useState(null),
@@ -71,7 +73,7 @@ export default function Projects() {
   async function dropTask(task, index) {
     finishDrag();
     if (!task || task.stage === index || busy) return;
-    if (!availableStages(task, canReview).includes(index)) {
+    if (!availableStages(task, canReview, isPreview).includes(index)) {
       setError(
         "Move to a highlighted column. Review approval and rejection rules still apply.",
       );
@@ -172,7 +174,11 @@ export default function Projects() {
         .includes(search.toLowerCase()),
   );
   async function transition(task, targetStage, reason) {
-    if (targetStage === 5 && !reason) {
+    if ([5, 6].includes(targetStage) && !reason) {
+      if (targetStage === 6) {
+        setRevisionRequest(task);
+        return;
+      }
       setReject(task);
       return;
     }
@@ -186,8 +192,10 @@ export default function Projects() {
       await load();
       setNotice(`#${task.id} moved to ${stages[targetStage]}`);
       setReject(null);
+      setRevisionRequest(null);
     } catch (e) {
       setError(e.message);
+      return { error: e.message };
     } finally {
       setBusy(false);
     }
@@ -312,82 +320,87 @@ export default function Projects() {
           className={`kanban ${dragTask ? "drag-active" : ""}`}
           ref={boardRef}
         >
-          {stages.map((stage, index) => {
-            const list = filtered.filter((t) => t.stage === index),
-              closed = collapsed.includes(index);
-            return (
-              <section
-                className={`stage ${closed ? "collapsed" : ""} ${dragTask && availableStages(dragTask, canReview).includes(index) ? "can-drop" : ""} ${dragOver === index ? "drag-over" : ""}`}
-                data-stage-index={index}
-                onDragOver={(e) => {
-                  if (
-                    dragTask &&
-                    availableStages(dragTask, canReview).includes(index)
-                  ) {
+          {(isPreview ? [0, 1, 2, 3, 6, 4, 5] : [0, 1, 2, 3, 4, 5]).map(
+            (index) => {
+              const stage = stages[index];
+              const list = filtered.filter((t) => t.stage === index),
+                closed = collapsed.includes(index);
+              return (
+                <section
+                  className={`stage ${closed ? "collapsed" : ""} ${dragTask && availableStages(dragTask, canReview, isPreview).includes(index) ? "can-drop" : ""} ${dragOver === index ? "drag-over" : ""}`}
+                  data-stage-index={index}
+                  onDragOver={(e) => {
+                    if (
+                      dragTask &&
+                      availableStages(dragTask, canReview, isPreview).includes(
+                        index,
+                      )
+                    ) {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      setDragOver(index);
+                    }
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget))
+                      setDragOver(null);
+                  }}
+                  onDrop={(e) => {
                     e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                    setDragOver(index);
-                  }
-                }}
-                onDragLeave={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget))
-                    setDragOver(null);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  dropTask(dragTask, index);
-                }}
-                key={stage}
-              >
-                <button
-                  className="stage-heading"
-                  aria-expanded={!closed}
-                  onClick={() =>
-                    setCollapsed(
-                      closed
-                        ? collapsed.filter((c) => c !== index)
-                        : [...collapsed, index],
-                    )
-                  }
+                    dropTask(dragTask, index);
+                  }}
+                  key={stage}
                 >
-                  <span>{stage}</span>
-                  <b>{list.length}</b>
-                  {closed && <ChevronRight size={17} />}
-                </button>
-                {!closed && (
-                  <>
-                    <div className="stage-cards">
-                      {list.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onOpen={setSelected}
-                          onTransition={transition}
-                          canReview={canReview}
-                          busy={busy}
-                          onDragTask={setDragTask}
-                          onDragFinish={finishDrag}
-                          onTouchDrag={startTouchDrag}
-                          dragging={dragTask?.id === task.id}
-                        />
-                      ))}
-                    </div>
-                    {canCreate && (
-                      <button
-                        className="add-card"
-                        onClick={() => setAdding(index)}
-                      >
-                        <Plus size={16} /> Add a card…
-                      </button>
-                    )}
-                    {!list.length && (
-                      <p className="empty-column">No tasks in this stage</p>
-                    )}
-                  </>
-                )}
-              </section>
-            );
-          })}
+                  <button
+                    className="stage-heading"
+                    aria-expanded={!closed}
+                    onClick={() =>
+                      setCollapsed(
+                        closed
+                          ? collapsed.filter((c) => c !== index)
+                          : [...collapsed, index],
+                      )
+                    }
+                  >
+                    <span>{stage}</span>
+                    <b>{list.length}</b>
+                    {closed && <ChevronRight size={17} />}
+                  </button>
+                  {!closed && (
+                    <>
+                      <div className="stage-cards">
+                        {list.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onOpen={setSelected}
+                            onTransition={transition}
+                            canReview={canReview}
+                            busy={busy}
+                            onDragTask={setDragTask}
+                            onDragFinish={finishDrag}
+                            onTouchDrag={startTouchDrag}
+                            dragging={dragTask?.id === task.id}
+                          />
+                        ))}
+                      </div>
+                      {canCreate && (
+                        <button
+                          className="add-card"
+                          onClick={() => setAdding(index)}
+                        >
+                          <Plus size={16} /> Add a card…
+                        </button>
+                      )}
+                      {!list.length && (
+                        <p className="empty-column">No tasks in this stage</p>
+                      )}
+                    </>
+                  )}
+                </section>
+              );
+            },
+          )}
         </div>
       ) : view === "list" ? (
         <DataTable
@@ -560,6 +573,14 @@ export default function Projects() {
             </button>
           </form>
         </Modal>
+      )}
+      {revisionRequest && (
+        <RevisionRequestForm
+          task={revisionRequest}
+          onClose={() => setRevisionRequest(null)}
+          onSave={transition}
+          busy={busy}
+        />
       )}
       {reject && (
         <Modal

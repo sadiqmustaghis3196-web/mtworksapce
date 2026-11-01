@@ -70,6 +70,7 @@ const validDate = (value) =>
   Number.isFinite(Date.parse(`${value}T00:00:00Z`)) &&
   new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 export function phaseOf(task) {
+  if (task.stage === 6) return "revision";
   if (task.stage === 5) return "development";
   return task.stage === 4
     ? "done"
@@ -385,7 +386,7 @@ export function dailyDashboard(data, options = {}) {
         dateInKarachi(t.dueDate) === date ||
         completedOn(t, date) ||
         (isToday &&
-          ([1, 2, 3, 5].includes(t.stage) ||
+          ([1, 2, 3, 5, 6].includes(t.stage) ||
             (t.stage === 0 && t.assignees?.length > 0))),
     )
     .map((t) => {

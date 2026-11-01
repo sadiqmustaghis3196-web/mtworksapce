@@ -3755,3 +3755,78 @@ td .link {
 .light .task-drag-handle {
   color: #456787;
 }
+.stage[data-stage-index="6"] {
+  border-color: #f3b26d70;
+  background: linear-gradient(155deg, #533b4a77, #29283de8);
+}
+.revision-badge {
+  margin-bottom: 8px !important;
+  color: #ffd29a;
+  background: #b979251f;
+  border: 1px solid #ca965f44;
+  font-size: 9px;
+  white-space: normal;
+}
+.task-actions .request-revision {
+  color: #ffd294;
+  border: 1px solid #d8a46844;
+  background: #6a4a3038;
+}
+.revision-round {
+  border: 1px solid #b68a5e55;
+  border-radius: 10px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.revision-round header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.revision-round p,
+.revision-update p,
+.current-revision-banner p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.revision-round small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.revision-update {
+  border-left: 2px solid #46bdc6;
+  padding: 12px;
+  margin: 14px 0;
+  background: #40a0bb0b;
+}
+.revision-update strong {
+  font-size: 11px;
+}
+.revision-round form {
+  margin-top: 18px;
+}
+.current-revision-banner {
+  border: 1px solid #cc975966;
+  border-left: 4px solid #eab36d;
+  border-radius: 8px;
+  background: #a2753520;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+.current-revision-banner strong {
+  color: #f4ca97;
+  font-size: 13px;
+}
+.light .current-revision-banner strong {
+  color: #89511d;
+}
+.task-detail > div {
+  min-width: 0;
+}
+.detail-aside .task-actions {
+  flex-wrap: wrap;
+}

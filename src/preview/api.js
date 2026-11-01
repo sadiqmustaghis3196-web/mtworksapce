@@ -1,4 +1,8 @@
 import {
+  updateRevisionRound,
+  addRevisionUpdate,
+} from "../modules/taskRevisions";
+import {
   refreshNotificationFeed,
   notificationFeed,
 } from "../modules/notifications";
@@ -283,18 +287,27 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     return { data: decorate(task, data) };
   }
   const match = path.match(
-    /^\/tasks\/(\d+)(?:\/(transition|comments|assign|checklists|attachments))?$/,
+    /^\/tasks\/(\d+)(?:\/(transition|comments|assign|checklists|attachments|revision-updates))?$/,
   );
   if (match) {
     const task = data.tasks.find((t) => t.id === Number(match[1]));
     if (!task) fail("Preview task not found.", 404);
     if (method === "GET") return { data: decorate(task, data) };
     if (match[2] === "transition" && method === "POST") {
-      const allowed = { 0: [1], 1: [2], 2: [3], 3: [4, 5], 4: [2], 5: [2] };
+      const allowed = {
+        0: [1],
+        1: [2],
+        2: [3, 6],
+        3: [4, 5, 6],
+        4: [2, 6],
+        5: [2],
+        6: [2],
+      };
       if (!allowed[task.stage].includes(body.targetStage))
         fail("This preview stage transition is not allowed.", 409);
       if (body.targetStage === 5 && !body.reason?.trim())
         fail("A rejection reason is required.");
+      updateRevisionRound(task, body.targetStage, body.reason);
       task.activities.unshift({
         id: crypto.randomUUID(),
         fromStage: task.stage,
@@ -318,6 +331,7 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
             3: "Review",
             4: "Approved",
             5: "Revision requested",
+            6: "Revision requested",
           }[task.stage] || creative.status;
       if (task.stage === 4) {
         task.progress = 100;
@@ -345,6 +359,7 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         3: "Task ready for review",
         4: "Task approved",
         5: "Task needs revisions",
+        6: "Revision requested",
       };
       for (const employeeId of new Set(recipients))
         data.records.notifications.unshift({
@@ -358,6 +373,16 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
           status: "Unread",
           createdAt: new Date().toISOString(),
         });
+    } else if (match[2] === "revision-updates" && method === "POST") {
+      const entry = addRevisionUpdate(task, body.content);
+      data.records.notifications.unshift({
+        id: crypto.randomUUID(),
+        title: "Revision work update",
+        message: `#${task.id}: ${entry.content}`,
+        taskId: task.id,
+        status: "Unread",
+        createdAt: entry.createdAt,
+      });
     } else if (match[2] === "comments" && method === "POST") {
       if (!body.content?.trim()) fail("Enter a comment.");
       task.updates.unshift({

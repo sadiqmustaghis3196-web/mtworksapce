@@ -34,3 +34,5 @@ The preview `/notifications` route now uses pages/notifications/Notifications.js
 Bell interaction: AppLayout mounts Notifications in compact mode inside an anchored overlay (`#notification-popover`). It preserves the current route and screen. Dashboard View all and toast actions open that overlay; standalone `/notifications` remains only as a compatible direct route.
 
 TaskCard now supports whole-surface opening, native drag and touch-handle movement. Projects owns drop targets and existing transition handling; modules/taskInteraction.js shares permitted targets. DocumentEditor uses ImagePreview.jsx for thumbnails and a separate image viewer dialog.
+
+Board stage 6 is Revision & Updates, placed visually after Review. RevisionRequestForm handles required instructions; RevisionHistory handles round notes/updates. DailyDashboard/DeliveryFlow show a revision branch; document previews and printable task workflows include revision rounds. Backend stage schemas are unchanged in this preview phase.

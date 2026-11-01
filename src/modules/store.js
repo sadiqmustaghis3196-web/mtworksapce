@@ -1,3 +1,4 @@
+import { updateRevisionRound } from "./taskRevisions.js";
 import { entities, permissionNames } from "./catalog.js";
 export function invalid(message, status = 400) {
   throw Object.assign(new Error(message), { status });
@@ -752,6 +753,7 @@ function linkedTask(data, record, targetStage, reason) {
     data.tasks.push(task);
     record.taskId = task.id;
   }
+  updateRevisionRound(task, targetStage, reason);
   task.activities.unshift({
     id: id("activity"),
     fromStage: task.stage,
@@ -932,7 +934,7 @@ export function performAction(data, key, recordId, actionKey, input = {}) {
     linkedTask(
       data,
       record,
-      { start: 2, submit: 3, approve: 4, revise: 5 }[actionKey],
+      { start: 2, submit: 3, approve: 4, revise: 6 }[actionKey],
       fields.reason,
     );
   }

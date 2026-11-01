@@ -1693,3 +1693,14 @@
     margin: 14px 8px 0;
   }
 }
+.revision-pipeline-lane{display:flex;align-items:center;gap:12px;width:calc(100% - 40px);margin:8px 20px 20px;border:4px double #e7a96a9c;border-radius:12px;padding:14px 17px;background:linear-gradient(110deg,#62413044,#33304c66);color:#f3cc9d;text-align:left;cursor:pointer}.revision-pipeline-lane>span{flex:1}.revision-pipeline-lane strong{display:block;font-size:13px}.revision-pipeline-lane small{display:block;font-size:10px;margin-top:6px;color:#baa9a0}.revision-pipeline-lane>b{font-size:23px}.revision-pipeline-lane.selected{outline:2px solid #f6d5ac;outline-offset:3px}.light .revision-pipeline-lane {
+  background: #fff4e5;
+  color: #81502a;
+}
+.light .revision-pipeline-lane small {
+  color: #805a41;
+}
+.phase-revision .day-badge {
+  color: #efc191;
+  border-color: #d1a16755;
+}

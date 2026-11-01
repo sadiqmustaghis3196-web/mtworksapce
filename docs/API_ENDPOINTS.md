@@ -54,3 +54,7 @@ Document blocks are ordered `{id,type,text}` or `{id,type:"image",src,caption}` 
 - `POST /workspace/notifications/:id/actions/read` or `/unread`: idempotent status change.
 
 Task stage transitions also persist recipient notifications, tagged with eventType/targetStage. `notificationTarget` resolves tasks to `/projects?task=:id` and module notifications to their record routes. These are preview adapter operations, not new real-backend or remote notification services.
+
+## Browser-only revision workflow
+
+Preview `POST /tasks/:id/transition` now accepts targetStage 6 with required `reason` from stages 2, 3 or 4. Stage 6 returns to 2. Existing 0–5 stage IDs retain their meanings. Revision state is stored in task.revisions with round number, instructions, status, timestamps and updates. `POST /tasks/:id/revision-updates` with content adds an update to the latest open round and a matching task comment. Approved/superseded rounds cannot be updated. Real server schemas/migrations are unchanged; these routes are browser adapter additions.

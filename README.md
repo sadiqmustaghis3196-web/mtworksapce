@@ -95,3 +95,7 @@ The bell opens a dropdown over the current screen with All/Unread/Read filters, 
 Drag board cards (or their Drag handle) onto highlighted workflow columns; touch/pen dragging uses the handle. Move to… provides a keyboard/mobile alternative. Existing review/rejection/rework rules apply; Reject still asks for a reason. Card metadata/background and Enter/Space on a focused card open its task document, while action controls keep their own behavior.
 
 Document images now appear as compact thumbnails in edit and page-preview modes. Click to open a full-image viewer; Close/Escape returns to the document. PDF printing retains the original image content.
+
+## Revision & Updates
+
+The preview board now has a separate Revision & Updates column between Review and Done; Reject remains separate. Reviewers can request revisions from In Progress, Review or Done with required instructions. Each request creates a numbered revision round; the task/document/assignees stay linked. Start revision returns work to In Progress, then Send for Review and Approve completes the round. Revisions tab records work updates and preserves earlier approved rounds. Creative Studio revision requests use the same task stage. The dashboard has a Revision & Updates branch/filter, and task page/PDF exports include revision history. These additions remain part of the browser-local preview; real backend stage migration is deferred.

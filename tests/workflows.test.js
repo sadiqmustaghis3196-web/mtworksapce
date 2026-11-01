@@ -303,7 +303,9 @@ test("creative deliverables, revisions and approval synchronize linked project t
   act(d, "creativeRequests", r, "submit");
   assert.equal(task.stage, 3);
   act(d, "creativeRequests", r, "revise", { reason: "Improve contrast" });
-  assert.equal(task.stage, 5);
+  assert.equal(task.stage, 6);
+  assert.equal(task.revisions.length, 1);
+  assert.equal(task.revisions[0].status, "Requested");
   assert.equal(rows(d, "creativeRevisions").length, 1);
   act(d, "creativeRequests", r, "start");
   act(d, "creativeRequests", r, "submit");

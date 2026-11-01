@@ -44,3 +44,7 @@ The notification dropdown has its own search and scroll area. Opening it, filter
 On the board, drag a card or its handle to a highlighted next stage. On touch screens use the handle; Move to… also works with a keyboard. Existing approval/rejection gates remain: Review→Done is approval, Review→Reject asks for instructions, and Done/Reject→In Progress is rework. Refresh preserves the same task and transition history. Click non-control areas of a board or daily-work card to open it; controls perform their own action.
 
 Uploaded document images are small clickable previews. Click one to open the larger original; Escape or Close image returns to the task without closing its document. PDF output continues to include the image in its document order.
+
+## Client revisions and ongoing updates
+
+From In Progress, Review or Done choose Request revision (or drag/Move to… Revision & Updates) → describe client instructions → request. Card moves to its own revision column; the same ID, document and assignees remain. Open Revisions to post work notes. Start revision → In Progress → daily work/reporting → Send for Review → Approve completes the round. Further client feedback creates the next numbered round while preserving old instructions/updates. Reject remains a separate decision. The dashboard revision lane opens pending revision tasks, and document/PDF views include the round history. Creative Studio Request revision follows this same task stage.

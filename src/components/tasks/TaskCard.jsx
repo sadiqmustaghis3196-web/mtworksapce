@@ -1,3 +1,4 @@
+import { isPreview } from "../../preview/config";
 import { useRef } from "react";
 import {
   availableStages,
@@ -20,6 +21,7 @@ export const stages = [
   "Review",
   "Done",
   "Reject",
+  "Revision & Updates",
 ];
 export function Actions({ task, canReview, onTransition }) {
   const s = task.stage;
@@ -48,6 +50,19 @@ export function Actions({ task, canReview, onTransition }) {
           <button onClick={() => onTransition(task, 5)}>✕ Reject</button>
         </>
       )}
+      {isPreview && [2, 3, 4].includes(s) && canReview && (
+        <button
+          className="request-revision"
+          onClick={() => onTransition(task, 6)}
+        >
+          <RotateCcw size={12} /> Request revision
+        </button>
+      )}
+      {isPreview && s === 6 && (
+        <button onClick={() => onTransition(task, 2)}>
+          <RotateCcw size={12} /> Start revision
+        </button>
+      )}
       {[4, 5].includes(s) && canReview && (
         <button onClick={() => onTransition(task, 2)}>
           <RotateCcw size={12} /> Rework
@@ -68,7 +83,7 @@ export default function TaskCard({
   busy,
 }) {
   const suppressClick = useRef(false);
-  const moves = availableStages(task, canReview);
+  const moves = availableStages(task, canReview, isPreview);
   const names = task.assignees?.map((a) => a.employee?.fullName) || [];
   return (
     <article
@@ -158,6 +173,12 @@ export default function TaskCard({
           </span>
         )}
       </div>
+      {!!task.revisions?.length && (
+        <span className="badge revision-badge">
+          Revision #{task.revisions.at(-1).number} ·{" "}
+          {task.revisions.at(-1).status}
+        </span>
+      )}
       <div className="task-project">
         <Folder size={13} />
         {task.project?.name || "No project assigned"}

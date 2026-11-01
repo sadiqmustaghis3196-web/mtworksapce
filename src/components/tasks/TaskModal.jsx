@@ -1,3 +1,4 @@
+import RevisionHistory from "./RevisionHistory";
 import TaskDocument from "../documents/TaskDocument";
 import { isPreview } from "../../preview/config";
 import { readFile } from "../../services/files";
@@ -16,7 +17,7 @@ export default function TaskModal({
     [documentDirty, setDocumentDirty] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [tab, setTab] = useState("Activity"),
+    [tab, setTab] = useState(task.stage === 6 ? "Revisions" : "Activity"),
     [employees, setEmployees] = useState([]),
     [assigneeIds, setAssigneeIds] = useState([]),
     [subtasks, setSubtasks] = useState([]);
@@ -162,6 +163,28 @@ export default function TaskModal({
       ) : (
         <div className="task-detail">
           <div>
+            {isPreview && record.revisions?.length > 0 && (
+              <aside className="current-revision-banner">
+                <strong>
+                  Revision #{record.revisions.at(-1).number} ·{" "}
+                  {record.revisions.at(-1).status}
+                </strong>
+                <p>{record.revisions.at(-1).reason}</p>
+                <button
+                  className="link"
+                  onClick={() => {
+                    setTab("Revisions");
+                    requestAnimationFrame(() =>
+                      document
+                        .getElementById("revision-task-history")
+                        ?.scrollIntoView({ block: "center" }),
+                    );
+                  }}
+                >
+                  View revision updates ↓
+                </button>
+              </aside>
+            )}
             {isPreview && (
               <TaskDocument
                 key={record.id}
@@ -250,7 +273,7 @@ export default function TaskModal({
                 "Activity",
                 "Comments",
                 "Checklists",
-                ...(isPreview ? ["Subtasks"] : []),
+                ...(isPreview ? ["Revisions", "Subtasks"] : []),
                 "Attachments",
               ].map((t) => (
                 <button
@@ -262,6 +285,13 @@ export default function TaskModal({
                 </button>
               ))}
             </div>
+            {tab === "Revisions" && (
+              <RevisionHistory
+                task={record}
+                busy={busy}
+                onUpdate={(content) => change("/revision-updates", { content })}
+              />
+            )}
             {tab === "Activity" &&
               (record.activities?.length ? (
                 record.activities.map((a) => (

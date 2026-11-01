@@ -201,6 +201,19 @@ export default function DeliveryFlow({
           </span>
         </div>
       </div>
+      <button
+        type="button"
+        className={`revision-pipeline-lane ${selected === "revision" ? "selected" : ""}`}
+        aria-pressed={selected === "revision"}
+        onClick={() => onSelect(selected === "revision" ? "all" : "revision")}
+      >
+        <RotateCcw size={18} />
+        <span>
+          <strong>Revision & Updates</strong>
+          <small>Review → Revision → Build → Review</small>
+        </span>
+        <b>{tasks.filter((t) => t.reportedPhase === "revision").length}</b>
+      </button>
       {selected !== "all" && (
         <section
           className="pipeline-task-documents"
@@ -210,7 +223,10 @@ export default function DeliveryFlow({
             <h3>
               {selected === "rework"
                 ? "Rework"
-                : deliveryPhases.find((p) => p.id === selected)?.label}{" "}
+                : deliveryPhases.find((p) => p.id === selected)?.label ||
+                  (selected === "revision"
+                    ? "Revision & Updates"
+                    : "Work")}{" "}
               · task documents
             </h3>
             <span>Click a task to edit its workflow document</span>

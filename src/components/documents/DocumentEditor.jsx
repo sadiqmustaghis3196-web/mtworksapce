@@ -48,6 +48,7 @@ function WorkflowSnapshot({ task }) {
     "Review",
     "Done",
     "Reject / Rework",
+    "Revision & Updates",
   ];
   return (
     <section className="document-workflow-snapshot">
@@ -105,6 +106,26 @@ function WorkflowSnapshot({ task }) {
                 </>
               )}
             </p>
+          ))}
+        </>
+      )}
+      {task.revisions?.length > 0 && (
+        <>
+          <h3>Revision & Updates</h3>
+          {task.revisions.map((r) => (
+            <section key={r.id}>
+              <h3>
+                Revision #{r.number} · {r.status}
+              </h3>
+              <p>{r.reason}</p>
+              {r.updates?.map((u) => (
+                <p key={u.id}>
+                  <strong>{u.authorName}</strong>
+                  <br />
+                  {u.content}
+                </p>
+              ))}
+            </section>
           ))}
         </>
       )}

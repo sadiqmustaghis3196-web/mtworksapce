@@ -1,3 +1,4 @@
+import RevisionRequestForm from "../../components/tasks/RevisionRequestForm";
 import { cardSurfaceClick } from "../../modules/taskInteraction";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -49,6 +50,7 @@ export default function DailyDashboard() {
     [selectedTask, setSelectedTask] = useState(null),
     [goalOpen, setGoalOpen] = useState(false),
     [preferencesOpen, setPreferencesOpen] = useState(false),
+    [revisionRequest, setRevisionRequest] = useState(null),
     [rejectTask, setRejectTask] = useState(null),
     [syncedAt, setSyncedAt] = useState(null);
   const [params, setParams] = useSearchParams();
@@ -113,7 +115,11 @@ export default function DailyDashboard() {
         .slice(0, 10),
     );
   async function transition(task, targetStage, reason) {
-    if (targetStage === 5 && !reason) {
+    if ([5, 6].includes(targetStage) && !reason) {
+      if (targetStage === 6) {
+        setRevisionRequest(task);
+        return;
+      }
       setRejectTask(task);
       return;
     }
@@ -123,10 +129,12 @@ export default function DailyDashboard() {
         body: { targetStage, reason },
       });
       setRejectTask(null);
+      setRevisionRequest(null);
       await load();
       setNotice(`#${task.id} moved to ${stages[targetStage]}.`);
     } catch (e) {
       setError(e.message);
+      return { error: e.message };
     }
   }
   async function saveUpdate(body) {
@@ -568,11 +576,10 @@ export default function DailyDashboard() {
                     >
                       <div className="daily-task-top">
                         <span className="day-badge">
-                          {
-                            deliveryPhases.find(
-                              (p) => p.id === task.reportedPhase,
-                            )?.label
-                          }
+                          {deliveryPhases.find(
+                            (p) => p.id === task.reportedPhase,
+                          )?.label ||
+                            (task.stage === 6 ? "Revision & Updates" : "Work")}
                         </span>
                         <span
                           className={`task-priority priority-${task.priority?.toLowerCase()}`}
@@ -672,6 +679,11 @@ export default function DailyDashboard() {
                         <p className="daily-task-blocker">
                           <AlertTriangle size={12} />
                           {task.dayBlocker}
+                        </p>
+                      )}
+                      {task.stage === 6 && (
+                        <p className="daily-task-blocker">
+                          Revision requested: {task.revisionReason}
                         </p>
                       )}
                       {task.stage === 5 && (
@@ -924,6 +936,13 @@ export default function DailyDashboard() {
             setSelectedTask(null);
             if (params.has("task")) setParams({});
           }}
+        />
+      )}
+      {revisionRequest && (
+        <RevisionRequestForm
+          task={revisionRequest}
+          onClose={() => setRevisionRequest(null)}
+          onSave={transition}
         />
       )}
       {rejectTask && (
