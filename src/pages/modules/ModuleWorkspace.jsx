@@ -1,3 +1,6 @@
+import ModuleOverview from "./ModuleOverview";
+import RecordOverview from "./RecordOverview";
+import { moduleSummary } from "../../modules/insights";
 import { useEffect, useState } from "react";
 import {
   Link,
@@ -80,6 +83,7 @@ export default function ModuleWorkspace({ module }) {
     [status, setStatus] = useState(""),
     [page, setPage] = useState(1),
     [view, setView] = useState("list"),
+    [showOverview, setShowOverview] = useState(true),
     [form, setForm] = useState(null),
     [actionForm, setActionForm] = useState(null),
     [confirm, setConfirm] = useState(null),
@@ -115,11 +119,27 @@ export default function ModuleWorkspace({ module }) {
     if (routeId === "new" && data && !definition.readOnly)
       setForm({ record: {} });
   }, [routeId, data, entity]);
+  const urlParams = new URLSearchParams(location.search);
+  const referenceFilters = definition.fields
+    .filter((f) => f.ref && urlParams.has(f.key))
+    .map((f) => ({ ...f, value: urlParams.get(f.key) }));
+  useEffect(() => {
+    const requested = new URLSearchParams(location.search).get("status") || "";
+    setStatus(definition.states?.includes(requested) ? requested : "");
+    setPage(1);
+  }, [entity, location.search]);
+  const newRecord = () =>
+    Object.fromEntries(referenceFilters.map((f) => [f.key, f.value]));
   const records = data ? collection(data, entity) : [],
     selected = records.find((r) => r.id === routeId),
     query = `${globalSearch} ${search}`.trim().toLowerCase();
   const filtered = records.filter(
     (r) =>
+      referenceFilters.every(
+        (f) =>
+          r[f.key] === f.value ||
+          (Array.isArray(r[f.key]) && r[f.key].includes(f.value)),
+      ) &&
       (!status || r.status === status) &&
       (!query ||
         Object.values(r)
@@ -242,80 +262,16 @@ export default function ModuleWorkspace({ module }) {
     );
   }
   function metrics() {
-    if (!data) return [];
-    if (module === "finance") {
-      const issued = data.records.invoices.filter(
-          (i) => !["Draft", "Cancelled"].includes(i.status),
-        ),
-        payments = data.records.payments.reduce(
-          (s, p) => s + toCents(p.amount),
-          0,
-        ),
-        outstanding = issued.reduce(
-          (s, i) => s + i.totalCents - i.paidCents,
-          0,
-        );
-      return [
-        ["Invoices", data.records.invoices.length],
-        ["Outstanding", `${currency()} ${fromCents(outstanding)}`],
-        ["Recorded payments", `${currency()} ${fromCents(payments)}`],
-        [
-          "Payroll approvals",
-          data.records.payroll.filter((p) => p.status === "Pending approval")
-            .length,
-        ],
-      ];
-    }
-    if (module === "attendance")
-      return [
-        [
-          "Checked in today",
-          data.records.attendance.filter((a) => a.date === today()).length,
-        ],
-        [
-          "Open check-ins",
-          data.records.attendance.filter(
-            (a) => a.date === today() && !a.checkOut,
-          ).length,
-        ],
-        [
-          "Leave approvals",
-          data.records.leaves.filter((l) => l.status === "Pending").length,
-        ],
-        [
-          "Annual leave balance",
-          `${balance(data, attendanceEmployee, "Annual", today().slice(0, 4))} days`,
-        ],
-      ];
-    return [
-      [config.tabs[0][1], collection(data, config.tabs[0][0]).length],
-      [
-        "Active / open",
-        records.filter((r) =>
-          [
-            "Active",
-            "Open",
-            "In progress",
-            "Applied",
-            "Enrolled",
-            "Draft",
-            "New Lead",
-          ].includes(r.status),
-        ).length,
-      ],
-      [
-        "Awaiting review",
-        records.filter((r) =>
-          ["Review", "Pending", "Pending approval", "Offer"].includes(r.status),
-        ).length,
-      ],
-      [
-        "Recorded activity",
-        data.records.auditLogs.filter((a) =>
-          config.tabs.some((t) => t[0] === a.entity),
-        ).length,
-      ],
-    ];
+    return data
+      ? moduleSummary(module, data, {
+          leaveBalance: balance(
+            data,
+            attendanceEmployee,
+            "Annual",
+            today().slice(0, 4),
+          ),
+        })
+      : [];
   }
   function relatedPath(key, recordId) {
     const owner =
@@ -375,17 +331,21 @@ export default function ModuleWorkspace({ module }) {
           </button>
         )}
         {!definition.readOnly && !definition.noCreate && (
-          <button className="primary" onClick={() => setForm({ record: {} })}>
+          <button
+            className="primary"
+            onClick={() => setForm({ record: newRecord() })}
+          >
             <Plus size={17} /> Add {definition.singular.toLowerCase()}
           </button>
         )}
       </PageHeader>
       <p className="module-subtitle">{config.subtitle}</p>
       <div className="module-metrics">
-        {metrics().map(([title, count], i) => (
+        {metrics().map(({ label: title, value: count, hint }, i) => (
           <div className="module-metric" key={title}>
             <span>{title}</span>
             <strong>{count}</strong>
+            <small className="metric-hint">{hint}</small>
             <span className={`metric-symbol symbol-${i}`}>
               {
                 [
@@ -399,6 +359,17 @@ export default function ModuleWorkspace({ module }) {
           </div>
         ))}
       </div>
+      {data && entity === config.tabs[0][0] && module !== "notifications" && (
+        <div className="overview-control">
+          <span>OPERATIONS OVERVIEW</span>
+          <button onClick={() => setShowOverview((v) => !v)}>
+            {showOverview ? "Hide overview" : "Show overview"}
+          </button>
+        </div>
+      )}
+      {data && showOverview && entity === config.tabs[0][0] && (
+        <ModuleOverview module={module} data={data} />
+      )}
       <div
         className="module-tabs"
         role="navigation"
@@ -486,6 +457,23 @@ export default function ModuleWorkspace({ module }) {
           <button className="link" onClick={() => setError("")}>
             Dismiss
           </button>
+        </div>
+      )}
+      {data && referenceFilters.length > 0 && (
+        <div className="active-context-filter">
+          <span>
+            Showing{" "}
+            {referenceFilters
+              .map(
+                (f) =>
+                  `${f.label}: ${displayName(
+                    f.ref,
+                    collection(data, f.ref).find((r) => r.id === f.value),
+                  )}`,
+              )
+              .join(" · ")}
+          </span>
+          <Link to={path()}>Clear context</Link>
         </div>
       )}
       {loading ? (
@@ -715,9 +703,17 @@ export default function ModuleWorkspace({ module }) {
               </Link>
             )}
           </div>
+          <RecordOverview
+            key={selected.id}
+            entity={entity}
+            record={selected}
+            data={data}
+            onChanged={load}
+          />
+          <h3 className="record-section-heading">Record details</h3>
           <div className="record-detail-grid">
             {[
-              ...definition.fields,
+              ...definition.fields.filter((f) => f.key !== definition.title),
               ...[
                 "days",
                 "total",
@@ -855,6 +851,7 @@ export default function ModuleWorkspace({ module }) {
           key={`${entity}-${form.record.id || "new"}`}
           title={`${form.record.id ? "Edit" : "Add"} ${definition.singular.toLowerCase()}`}
           fields={definition.fields}
+          entity={entity}
           record={form.record}
           data={data}
           onClose={() => {

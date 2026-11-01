@@ -46,7 +46,7 @@ Stored records use the existing versioned preview localStorage key; new entity c
 - Four deployment configuration checks pass; git diff --check passes.
 - Desktop client and mobile support screens visually inspected after browser tests.
 - 17 workflow-rule tests pass (`node tests/workflows.test.js`). They cover every business area, decimal-safe invoices, invalid transitions, overlap/duplicate/overpayment guards and cross-module effects.
-- Browser suite: **18 passed** (`npm run test:preview`) against the built application without API interception: every sidebar area at 320/375/390/430/768/1024/1440 widths, core workflows, file upload, actual backup download, assignments/checklists/subtasks, refresh persistence, calendar/timeline/dialogs, reset confirmation and logout. Final run: 18/18 passed in 22.1 seconds.
+- Browser suite: **25 passed** (`npm run test:preview`) against the built application without API interception: every sidebar area at 320/375/390/430/768/1024/1440 widths, core workflows, file upload, actual backup download, assignments/checklists/subtasks, refresh persistence, calendar/timeline/dialogs, reset confirmation and logout. Final redesign run: 25/25 passed in 24.7 seconds.
 - Historical backend tests and fake-transaction provisioning tests are not evidence of real DB integration.
 
 ## Database-backed phase remains pending
@@ -56,3 +56,12 @@ The real Express/Prisma code exists but the current workspace has no hosted DATA
 Do not call this production-ready or claim durable/shared PostgreSQL persistence. Real API/schema/migration coverage, scoped RBAC for every new module, server uploads/storage, reset email delivery, multi-user conflicts, and external integrations remain work for the later database phase. No live Vercel deployment has been verified by this task.
 
 Resume: inspect this file and `git diff`, continue in `/workspace/mtworksapce` without a worktree. Use `npm run dev` for browser-local workflows. `npm run prepare:production` restores full-stack deploy files only when the user resumes backend work; `npm run build:production` explicitly disables preview. Full original requirements: `docs/MASTER_SPECIFICATION.md`. Earlier task history: `docs/legacy/DEVELOPMENT_PROGRESS_before_module_workflows.md`.
+
+
+## Professional operations redesign
+
+Module dashboards now use domain-specific KPIs and linked operational panels: client delivery/portfolio, recruitment funnel and interviews, department staffing, attendance/leave review, internship capacity/progress, receivables/finance approval desk, creative workload/reviews, sales pipeline/follow-ups, support deadlines/ownership, and administration coverage. All counts, balances and workload shares come from current local records, without fabricated growth trends or assumed staff capacity. Overview can be hidden to focus on records.
+
+New record profiles include workflow stage tracks, project completion/team context, client and employee summaries, structured invoice documents, payroll breakdowns, creative briefs and ticket conversation threads with an inline response composer. Relationship shortcuts apply real URL-driven record filters; add forms inherit that context. Forms suggest invoice IDs/dates, payroll salary/month/deductions, and payment balances without overwriting deliberate edits. Live cent-safe totals and contextual help explain financial entries. Search has a working Ctrl/Command+K shortcut; theme persists after refresh.
+
+New files: src/modules/insights.js (read models), formSupport.js (form defaults/calculations), ModuleOverview.jsx and RecordOverview.jsx. Eight pure insight/form tests passed; 25 browser tests passed, including existing workflows, context drill-downs, invoice documents/calculations, salary suggestion behavior, ticket replies, mobile detail dialogs, keyboard search and persisted theme. Explicit DB-backed endpoints/security remain outside this UI phase. See docs/lessons/04-professional-operations.md.

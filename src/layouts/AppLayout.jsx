@@ -1,8 +1,8 @@
 import { isPreview } from "../preview/config";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../services/api";
 import { Modal } from "../components/common/UI";
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   PanelsTopLeft,
@@ -46,9 +46,40 @@ const navigation = [
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false),
-    [light, setLight] = useState(false),
+    [light, setLight] = useState(() => {
+      try {
+        return localStorage.getItem("mt-nexus-theme") === "light";
+      } catch {
+        return false;
+      }
+    }),
     [search, setSearch] = useState(""),
     [profile, setProfile] = useState(false);
+  const searchRef = useRef(null),
+    location = useLocation();
+  useEffect(() => {
+    try {
+      localStorage.setItem("mt-nexus-theme", light ? "light" : "dark");
+    } catch {}
+  }, [light]);
+  useEffect(() => {
+    setSearch("");
+    setProfile(false);
+  }, [location.pathname.split("/")[1]]);
+  useEffect(() => {
+    const keydown = (e) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key.toLowerCase() === "k" &&
+        !document.querySelector("dialog[open]")
+      ) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => document.removeEventListener("keydown", keydown);
+  }, []);
   const [workspace, setWorkspace] = useState({
       company: "MT Nexus Global",
       unread: 0,
@@ -150,12 +181,27 @@ export default function AppLayout() {
           <div className="search">
             <Search size={17} />
             <input
-              aria-label="Search authorized tasks"
-              placeholder="Search cards…"
+              ref={searchRef}
+              aria-label="Search current view"
+              aria-keyshortcuts="Control+K Meta+K"
+              placeholder="Search this view…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <kbd>⌘ K</kbd>
+            {search ? (
+              <button
+                className="clear-view-search"
+                aria-label="Clear search"
+                onClick={() => {
+                  setSearch("");
+                  searchRef.current?.focus();
+                }}
+              >
+                <X size={13} />
+              </button>
+            ) : (
+              <kbd>⌘ K</kbd>
+            )}
           </div>
           <div className="top-actions">
             {isPreview ? (

@@ -24,3 +24,7 @@ All routes below now have interactive browser-local screens. No “Module not av
 Business module screens use `src/pages/modules/ModuleWorkspace.jsx` and `RecordForm.jsx`, driven by `src/modules/catalog.js`. Lists, details, forms and workflows are shared reusable components rather than duplicated HTML screens. Record detail routes append the record ID to the listed collection path; add/edit dialogs preserve the current section.
 
 Task dialog: `src/components/tasks/TaskModal.jsx`; schedules: `ScheduleViews.jsx`; shell: `src/layouts/AppLayout.jsx`; file validation: `src/services/files.js`.
+
+## Professional operations layer
+
+ModuleOverview.jsx renders the domain-specific panels defined by src/modules/insights.js. RecordOverview.jsx adds profiles, stage tracks, invoice document/payroll layouts and inline ticket conversations. RecordForm.jsx uses formSupport.js for contextual defaults, help and live financial calculations. Detail shortcuts use URL reference filters and pass those references into new-record forms. Data remains browser-local.

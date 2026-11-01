@@ -1,4 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useId } from "react";
+import {
+  formDefaults,
+  fieldHelp,
+  formCalculation,
+} from "../../modules/formSupport";
 import { Modal } from "../../components/common/UI";
 import { entities } from "../../modules/catalog";
 export function displayName(entity, record) {
@@ -6,6 +11,7 @@ export function displayName(entity, record) {
 }
 export default function RecordForm({
   title,
+  entity,
   fields,
   record = {},
   data,
@@ -13,11 +19,14 @@ export default function RecordForm({
   onSubmit,
   submitLabel = "Save record",
 }) {
+  const touched = useRef(new Set()),
+    prefix = useId();
+  const initial = formDefaults(entity, data, record);
   const [values, setValues] = useState(() =>
       Object.fromEntries(
         fields.map((f) => [
           f.key,
-          record[f.key] ??
+          initial[f.key] ??
             (f.type === "permissions" || f.type === "multi-reference"
               ? []
               : f.type === "number"
@@ -28,7 +37,43 @@ export default function RecordForm({
     ),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const set = (key, value) => setValues((v) => ({ ...v, [key]: value }));
+  const set = (key, value) => {
+    touched.current.add(key);
+    setValues((previous) => {
+      const next = { ...previous, [key]: value };
+      if (
+        entity === "payroll" &&
+        key === "employeeId" &&
+        !record.id &&
+        !touched.current.has("gross")
+      )
+        next.gross =
+          data.records.employees.find((e) => e.id === value)?.salary || "0.00";
+      if (
+        entity === "payments" &&
+        key === "invoiceId" &&
+        !record.id &&
+        !touched.current.has("amount")
+      ) {
+        const invoice = data.records.invoices.find((i) => i.id === value);
+        if (invoice)
+          next.amount = (
+            (invoice.totalCents - invoice.paidCents) /
+            100
+          ).toFixed(2);
+      }
+      if (
+        key === "clientId" &&
+        next.projectId &&
+        data.projects.find((p) => p.id === next.projectId)?.clientId !== value
+      )
+        next.projectId = "";
+      return next;
+    });
+  };
+  const calculation = formCalculation(entity, values, data),
+    currency =
+      data.records.settings.find((s) => s.name === "Currency")?.value || "PKR";
   async function upload(field, file) {
     setError("");
     if (!file) {
@@ -79,15 +124,27 @@ export default function RecordForm({
   return (
     <Modal title={title} onClose={onClose} wide={fields.length > 6}>
       <form className="record-form" onSubmit={submit}>
+        <div className="form-introduction">
+          <span>{record.id ? "UPDATE RECORD" : "NEW RECORD"}</span>
+          <p>
+            {record.id
+              ? "Changes are recorded in the workspace activity history."
+              : "Complete the key details below. Related records keep your workflow connected."}
+          </p>
+        </div>
         <div className="record-form-grid">
           {fields.map((f) => {
             const value = values[f.key],
               multiple = ["permissions", "multi-reference"].includes(f.type),
               choices = f.ref
-                ? (f.ref === "projects"
-                    ? data.projects
-                    : data.records[f.ref]
-                  ).map((r) => ({ value: r.id, label: displayName(f.ref, r) }))
+                ? (f.ref === "projects" ? data.projects : data.records[f.ref])
+                    .filter(
+                      (r) =>
+                        f.key !== "projectId" ||
+                        !values.clientId ||
+                        r.clientId === values.clientId,
+                    )
+                    .map((r) => ({ value: r.id, label: displayName(f.ref, r) }))
                 : f.options?.map((o) => ({ value: o, label: o }));
             return (
               <label
@@ -113,6 +170,11 @@ export default function RecordForm({
                 {f.type === "textarea" ? (
                   <textarea
                     aria-label={f.label}
+                    aria-describedby={
+                      fieldHelp(entity, f.key)
+                        ? `${prefix}-${f.key}-help`
+                        : undefined
+                    }
                     rows={3}
                     maxLength={5000}
                     value={value}
@@ -144,6 +206,11 @@ export default function RecordForm({
                   <>
                     <input
                       aria-label={f.label}
+                      aria-describedby={
+                        fieldHelp(entity, f.key)
+                          ? `${prefix}-${f.key}-help`
+                          : undefined
+                      }
                       type="file"
                       accept=".pdf,.png,.jpg,.jpeg,.txt,.docx"
                       onChange={(e) => upload(f, e.target.files[0])}
@@ -162,6 +229,11 @@ export default function RecordForm({
                   <>
                     <select
                       aria-label={f.label}
+                      aria-describedby={
+                        fieldHelp(entity, f.key)
+                          ? `${prefix}-${f.key}-help`
+                          : undefined
+                      }
                       multiple={multiple}
                       size={multiple ? 4 : undefined}
                       value={value}
@@ -196,6 +268,11 @@ export default function RecordForm({
                 ) : (
                   <input
                     aria-label={f.label}
+                    aria-describedby={
+                      fieldHelp(entity, f.key)
+                        ? `${prefix}-${f.key}-help`
+                        : undefined
+                    }
                     type={f.type === "money" ? "number" : f.type || "text"}
                     step={
                       f.type === "money"
@@ -216,10 +293,28 @@ export default function RecordForm({
                     }
                   />
                 )}
+                {fieldHelp(entity, f.key) && (
+                  <small className="field-help" id={`${prefix}-${f.key}-help`}>
+                    {fieldHelp(entity, f.key)}
+                  </small>
+                )}
               </label>
             );
           })}
         </div>
+        {calculation && (
+          <div className="form-calculation">
+            <div>
+              <span>{calculation.label}</span>
+              <small>{calculation.detail}</small>
+            </div>
+            <strong>
+              {calculation.amount === null
+                ? "Check values"
+                : `${currency} ${Number(calculation.amount).toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            </strong>
+          </div>
+        )}
         {error && (
           <p className="error form-error" role="alert">
             {error}
