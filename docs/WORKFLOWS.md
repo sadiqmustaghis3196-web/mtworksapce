@@ -30,3 +30,9 @@ Notification preferences control deadline/review reminders and daily digest time
 Add Card → enter title and document blocks → choose project/members → create. Assigned Upcoming work appears in Plan & assign. Open a stage’s task list, then its task document. Edit paragraphs/headings, insert an image with caption, add more text below, move blocks up/down, preview and Save document. Close prompts before discarding unsaved document changes. Daily reports and workflow stages remain linked to this task.
 
 Print / Save PDF opens a separate A4 print view; click its Print / Save as PDF button and choose Save as PDF. It uses the currently shown document draft and includes live ownership, deadlines, stage changes, daily reports, checklists and comments. Keep edits with Save document before leaving the task. Existing PDFs are attachments, not editable document sources.
+
+## Notification inbox
+
+Use the header bell on desktop or mobile. All/Unread/Read filters and current-view search narrow the inbox. Mark read/unread changes the persistent badge; Mark all read affects the current preview lens. Open related work marks the alert read and opens its task document or linked module record. Task transitions notify reviewers/assignees, and deadlines/review/digest reminders honor the existing reminder preferences.
+
+The feed refreshes immediately after local changes, on focus/storage changes and every 15 seconds throughout the app, not only on the dashboard. New unread items show an in-app popup. Existing history is not replayed at login. These are browser-local alerts while the app is open, not email/device push notifications.

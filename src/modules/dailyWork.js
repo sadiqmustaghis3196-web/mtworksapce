@@ -559,6 +559,18 @@ export function syncDailyReminders(data, options = {}) {
     now = options.now || new Date().toISOString(),
     notifications = [];
   const add = (kind, task, message) => {
+    if (
+      kind === "review" &&
+      data.records.notifications.some(
+        (n) =>
+          n.taskId === task?.id &&
+          n.employeeId === profileId &&
+          n.eventType === "task-transition" &&
+          n.targetStage === 3 &&
+          dateInKarachi(n.createdAt) === dashboard.date,
+      )
+    )
+      return;
     const id = `work-reminder:${dashboard.date}:${profileId}:${kind}:${task?.id || "summary"}`;
     if (existing.has(id)) return;
     existing.add(id);

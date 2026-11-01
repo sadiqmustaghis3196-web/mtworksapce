@@ -1,3 +1,5 @@
+import Notifications from "./pages/notifications/Notifications";
+import { isPreview } from "./preview/config";
 import ModuleWorkspace from "./pages/modules/ModuleWorkspace";
 import { modules } from "./modules/catalog";
 import React from "react";
@@ -68,7 +70,13 @@ function App() {
                   <Route
                     key={key}
                     path={`${key}/*`}
-                    element={<ModuleWorkspace module={key} />}
+                    element={
+                      key === "notifications" && isPreview ? (
+                        <Notifications />
+                      ) : (
+                        <ModuleWorkspace module={key} />
+                      )
+                    }
                   />
                 ))}
               <Route path="*" element={<NotFound />} />

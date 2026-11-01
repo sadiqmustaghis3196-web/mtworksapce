@@ -28,3 +28,5 @@ Task dialog: `src/components/tasks/TaskModal.jsx`; schedules: `ScheduleViews.jsx
 ## Professional operations layer
 
 ModuleOverview.jsx renders the domain-specific panels defined by src/modules/insights.js. RecordOverview.jsx adds profiles, stage tracks, invoice document/payroll layouts and inline ticket conversations. RecordForm.jsx uses formSupport.js for contextual defaults, help and live financial calculations. Detail shortcuts use URL reference filters and pass those references into new-record forms. Data remains browser-local.
+
+The preview `/notifications` route now uses pages/notifications/Notifications.jsx instead of the generic collection screen, with a live unread badge, filters, read actions and related-record links. AppLayout displays new-item toasts and keeps the bell available on phones.

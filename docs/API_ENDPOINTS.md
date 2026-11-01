@@ -46,3 +46,11 @@ Validation and history live in `src/modules/dailyWork.js`. Role/profile paramete
 Preview `POST /tasks` accepts `documentBlocks` and `employeeIds`; it validates document/member inputs before saving the task and assignment notifications together. Preview `PATCH /tasks/:id` accepts `documentBlocks`, recording `documentUpdatedAt`. `GET /tasks/:id` decorates the task with its current project/assignees and linked daily reports for preview/export. These fields are not implemented on the real backend yet.
 
 Document blocks are ordered `{id,type,text}` or `{id,type:"image",src,caption}` records. Allowed types: heading, text, image, list, divider. Only local PNG/JPG data URLs are accepted; HTML/SVG and remote image URLs are rejected. Export escapes all text. No network PDF service is used.
+
+## Browser-only notification feed
+
+- `GET /notifications/feed?role=...&profileId=...`: generate deduplicated due in-app reminders and return sorted scoped items, unread count and profile.
+- `POST /notifications/read-all` with role/profileId: mark the currently scoped feed read.
+- `POST /workspace/notifications/:id/actions/read` or `/unread`: idempotent status change.
+
+Task stage transitions also persist recipient notifications, tagged with eventType/targetStage. `notificationTarget` resolves tasks to `/projects?task=:id` and module notifications to their record routes. These are preview adapter operations, not new real-backend or remote notification services.

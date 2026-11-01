@@ -100,6 +100,7 @@ export default function DailyDashboard() {
   useEffect(() => {
     try {
       sessionStorage.setItem("mt-daily-dashboard-view", JSON.stringify(view));
+      window.dispatchEvent(new Event("mt-notification-view-change"));
     } catch {}
     setPhase("all");
     setFilter("all");
@@ -807,7 +808,9 @@ export default function DailyDashboard() {
                     (n) =>
                       data.company ||
                       n.employeeId === data.profile.id ||
-                      data.tasks.some((t) => t.id === n.taskId),
+                      (!n.employeeId &&
+                        (n.id === "notification-welcome" ||
+                          data.tasks.some((t) => t.id === n.taskId))),
                   )
                   .slice(0, 5)
                   .map((n) => (
@@ -817,6 +820,14 @@ export default function DailyDashboard() {
                     >
                       <strong>{n.title}</strong>
                       <p>{n.message}</p>
+                      {n.taskId && (
+                        <Link
+                          to={`/projects?task=${n.taskId}`}
+                          onClick={() => readNotification(n)}
+                        >
+                          Open related work →
+                        </Link>
+                      )}
                       {n.status === "Unread" && (
                         <button onClick={() => readNotification(n)}>
                           Mark read

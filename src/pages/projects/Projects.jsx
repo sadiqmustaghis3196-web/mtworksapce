@@ -6,7 +6,12 @@ import {
 } from "../../components/tasks/ScheduleViews";
 import { isPreview } from "../../preview/config";
 import { useEffect, useState } from "react";
-import { useOutletContext, useParams, useNavigate } from "react-router-dom";
+import {
+  useOutletContext,
+  useParams,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import {
   Plus,
   PanelsTopLeft,
@@ -53,6 +58,15 @@ export default function Projects() {
     [adding, setAdding] = useState(null),
     [reject, setReject] = useState(null),
     [busy, setBusy] = useState(false);
+  const [taskParams, setTaskParams] = useSearchParams();
+  useEffect(() => {
+    const id = Number(taskParams.get("task"));
+    if (id && tasks.length) {
+      const target = tasks.find((t) => t.id === id);
+      if (target) setSelected(target);
+      else setError("The notification’s task is no longer available.");
+    }
+  }, [tasks, taskParams]);
   const canReview = !!user.effectivePermissions?.canManageTasks;
   const canCreate =
     user.isSuperAdmin || !!user.effectivePermissions?.canCreateTasks;
@@ -318,7 +332,10 @@ export default function Projects() {
       {selected && (
         <TaskModal
           task={selected}
-          onClose={() => setSelected(null)}
+          onClose={() => {
+            setSelected(null);
+            if (taskParams.has("task")) setTaskParams({});
+          }}
           onSaved={load}
           onTransition={transition}
           canReview={canReview}

@@ -3684,3 +3684,8 @@ td .link {
     font-size: 19px;
   }
 }
+
+/* Keep the notification inbox accessible on phones as well as desktops. */
+@media(max-width:760px){.top-actions > .notification{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}.notification-count{pointer-events:none}}
+
+.live-notification-toast{position:fixed;z-index:60;right:20px;top:120px;width:min(390px,calc(100vw - 28px));padding:17px;display:flex;gap:12px;border:1px solid #48d5ef88;border-left:4px solid #40d0e8;border-radius:12px;background:#182b43;color:#d7edff;box-shadow:0 10px 40px #0007}.live-notification-toast>svg{flex-shrink:0;color:#54d4ef}.live-notification-toast>div{flex:1;min-width:0}.live-notification-toast strong{font-size:13px}.live-notification-toast p{font-size:11px;line-height:1.7;overflow-wrap:anywhere;max-height:75px;overflow:auto;color:#b4cbe3}.live-notification-toast a{font-size:11px;color:#65dfeb}.live-notification-toast .icon{width:24px;height:24px;flex-shrink:0}.light .live-notification-toast{background:#edf8ff;color:#173c5b}.light .live-notification-toast p{color:#3e5f7d}

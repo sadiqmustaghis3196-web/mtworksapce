@@ -1,3 +1,4 @@
+import useNotifications from "../hooks/useNotifications";
 import { isPreview } from "../preview/config";
 import { useState, useEffect, useRef } from "react";
 import { api } from "../services/api";
@@ -45,6 +46,29 @@ const navigation = [
 ];
 export default function AppLayout() {
   const { user, logout } = useAuth();
+  const { feed: notificationFeed, loading: notificationLoading } =
+    useNotifications();
+  const [latestNotification, setLatestNotification] = useState(null);
+  const seenNotifications = useRef(null);
+  useEffect(() => {
+    if (notificationLoading) return;
+    const context = `${notificationFeed.role}:${notificationFeed.profile?.id}`;
+    const ids = new Set(notificationFeed.items.map((n) => n.id));
+    if (seenNotifications.current?.context === context) {
+      const fresh = notificationFeed.items.find(
+        (n) =>
+          n.status === "Unread" && !seenNotifications.current.ids.has(n.id),
+      );
+      if (fresh && !window.location.pathname.startsWith("/notifications"))
+        setLatestNotification(fresh);
+    } else setLatestNotification(null);
+    seenNotifications.current = { context, ids };
+  }, [notificationFeed, notificationLoading]);
+  useEffect(() => {
+    if (!latestNotification) return;
+    const timer = setTimeout(() => setLatestNotification(null), 10000);
+    return () => clearTimeout(timer);
+  }, [latestNotification]);
   const [open, setOpen] = useState(false),
     [light, setLight] = useState(() => {
       try {
@@ -57,6 +81,10 @@ export default function AppLayout() {
     [profile, setProfile] = useState(false);
   const searchRef = useRef(null),
     location = useLocation();
+  useEffect(() => {
+    if (location.pathname.startsWith("/notifications"))
+      setLatestNotification(null);
+  }, [location.pathname]);
   useEffect(() => {
     try {
       localStorage.setItem("mt-nexus-theme", light ? "light" : "dark");
@@ -228,9 +256,11 @@ export default function AppLayout() {
               aria-label="Notifications"
             >
               <Bell size={19} />
-              {isPreview && workspace.unread > 0 && (
+              {isPreview && notificationFeed.unread > 0 && (
                 <span className="notification-count">
-                  {workspace.unread > 99 ? "99+" : workspace.unread}
+                  {notificationFeed.unread > 99
+                    ? "99+"
+                    : notificationFeed.unread}
                 </span>
               )}
             </Link>
@@ -307,6 +337,32 @@ export default function AppLayout() {
               </button>
             </div>
           </Modal>
+        )}
+        {latestNotification && (
+          <section
+            className="live-notification-toast"
+            aria-label="New notification"
+            aria-live="polite"
+          >
+            <Bell size={18} />
+            <div>
+              <strong>{latestNotification.title}</strong>
+              <p>{latestNotification.message}</p>
+              <Link
+                to="/notifications"
+                onClick={() => setLatestNotification(null)}
+              >
+                View notifications →
+              </Link>
+            </div>
+            <button
+              className="icon"
+              aria-label="Dismiss notification"
+              onClick={() => setLatestNotification(null)}
+            >
+              <X size={15} />
+            </button>
+          </section>
         )}
         <main>
           <Outlet context={{ search }} />

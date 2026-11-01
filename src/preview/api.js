@@ -1,3 +1,7 @@
+import {
+  refreshNotificationFeed,
+  notificationFeed,
+} from "../modules/notifications";
 import { validateDocument } from "../modules/taskDocument";
 import {
   hydrateDailyWork,
@@ -85,6 +89,25 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
   if (path === "/auth/me") return { user: previewUser };
   const data = hydrateDailyWork(hydrateWorkspace(load()));
   const dailyURL = new URL(path, "http://preview.local");
+  if (dailyURL.pathname === "/notifications/feed" && method === "GET") {
+    const options = Object.fromEntries(
+      ["role", "profileId"]
+        .filter((k) => dailyURL.searchParams.has(k))
+        .map((k) => [k, dailyURL.searchParams.get(k)]),
+    );
+    const { created, ...feed } = refreshNotificationFeed(data, options);
+    if (created) save(data);
+    return { data: feed };
+  }
+  if (path === "/notifications/read-all" && method === "POST") {
+    const feed = notificationFeed(data, {
+      role: body.role,
+      profileId: body.profileId,
+    });
+    for (const n of feed.items) n.status = "Read";
+    save(data);
+    return { success: true };
+  }
   if (dailyURL.pathname === "/dashboard/daily" && method === "GET") {
     const options = Object.fromEntries(
       ["role", "profileId", "focusId", "date"]
@@ -115,6 +138,18 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     return { data: preferences };
   }
 
+  const notificationAction = path.match(
+    /^\/workspace\/notifications\/([^/]+)\/actions\/(read|unread)$/,
+  );
+  if (notificationAction && method === "POST") {
+    const n = data.records.notifications.find(
+      (n) => n.id === notificationAction[1],
+    );
+    if (!n) fail("Notification no longer available.", 404);
+    n.status = notificationAction[2] === "read" ? "Read" : "Unread";
+    save(data);
+    return { data: n };
+  }
   if (path.startsWith("/workspace/")) {
     const result = workspaceRequest(data, path, { method, body });
     if (method !== "GET") save(data);
@@ -293,6 +328,36 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         task.rejectedBy = "Preview Admin";
         task.rejectReason = body.reason;
       }
+      const recipients =
+        body.targetStage === 3
+          ? data.records.employees
+              .filter(
+                (e) =>
+                  e.id ===
+                    data.projects.find((p) => p.id === task.projectId)
+                      ?.managerId || e.id === "preview-hamza",
+              )
+              .map((e) => e.id)
+          : task.assignees.map((a) => a.employee.id);
+      const titles = {
+        1: "Task planned for today",
+        2: "Task work started",
+        3: "Task ready for review",
+        4: "Task approved",
+        5: "Task needs revisions",
+      };
+      for (const employeeId of new Set(recipients))
+        data.records.notifications.unshift({
+          id: crypto.randomUUID(),
+          title: titles[body.targetStage] || "Task stage updated",
+          eventType: "task-transition",
+          targetStage: body.targetStage,
+          message: `#${task.id} ${task.title}${body.reason ? ": " + body.reason : ""}`,
+          employeeId,
+          taskId: task.id,
+          status: "Unread",
+          createdAt: new Date().toISOString(),
+        });
     } else if (match[2] === "comments" && method === "POST") {
       if (!body.content?.trim()) fail("Enter a comment.");
       task.updates.unshift({

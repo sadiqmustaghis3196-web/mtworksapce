@@ -7,6 +7,7 @@ export default defineConfig({
     "**/professional.spec.js",
     "**/dailyDashboard.spec.js",
     "**/documents.spec.js",
+    "**/notifications.spec.js",
   ],
   use: {
     baseURL: "http://127.0.0.1:8002",
