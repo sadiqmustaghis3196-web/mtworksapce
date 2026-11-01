@@ -23,6 +23,12 @@ The rebuild does not yet have a generated/reviewed baseline migration. This rema
 
 After verified schema setup, seed reference roles/permissions and provision the initial administrator with the documented operator command against the intended hosted database, securely supplying the password. No default login exists. Do not expose provisioning as a public API.
 
+### Create the first login during a Vercel build
+
+Once the hosted database schema is ready, set INITIAL_ADMIN_EMAIL to your desired login email and INITIAL_ADMIN_PASSWORD to a strong private password (12–128 characters, uppercase/lowercase/number) in Vercel environment settings for the intended deployment. Redeploy. The build now runs the operator script with --if-needed after Prisma generation and the frontend build succeed. It skips provisioning when neither variable is configured; partial/invalid input fails the build. It creates a first Super Admin only when none exists. Repeated builds never reset passwords, promote existing accounts, or overwrite an existing admin. A PostgreSQL transaction/advisory lock serializes concurrent first-account creation.
+
+After the build explicitly confirms creation, sign in using the same email/password you entered privately, then remove INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD from Vercel settings and change the temporary password in your profile. Missing tables or inaccessible PostgreSQL still block account creation; this step does not silently push the schema or create a database. No production account has been created or verified by this task.
+
 ## Verify the deployment
 
 - `/login`: HTML page, not a function crash.

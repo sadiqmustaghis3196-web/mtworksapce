@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test --test-reporter=spec server/test/unit/*.test.js",
     "test:ui": "playwright test",
-    "build:vercel": "npm run prisma:generate --prefix server && npm run build",
+    "build:vercel": "npm run prisma:generate --prefix server && npm run build && npm run provision-admin --prefix server -- --if-needed",
     "test:deployment": "node --test tests/deployment.test.js"
   },
   "dependencies": {

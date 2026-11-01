@@ -56,3 +56,13 @@ test("Prisma includes the Vercel Linux/OpenSSL runtime target", () => {
     /binaryTargets\s*=\s*\["native", "rhel-openssl-3\.0\.x"\]/,
   );
 });
+
+test("Vercel provisioning is opt-in and runs after a successful frontend build", () => {
+  const pkg = JSON.parse(
+    readFileSync(new URL("../package.json", import.meta.url)),
+  );
+  assert.match(
+    pkg.scripts["build:vercel"],
+    /npm run build && npm run provision-admin --prefix server -- --if-needed$/,
+  );
+});
