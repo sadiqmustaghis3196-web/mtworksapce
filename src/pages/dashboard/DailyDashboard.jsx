@@ -801,7 +801,14 @@ export default function DailyDashboard() {
                   <h2>
                     <Bell size={16} /> Notifications
                   </h2>
-                  <Link to="/notifications">View all</Link>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.dispatchEvent(new Event("mt-open-notifications"))
+                    }
+                  >
+                    View all
+                  </button>
                 </header>
                 {workspace.records.notifications
                   .filter(

@@ -9,10 +9,12 @@ import {
 import { api } from "../../services/api";
 import { PageHeader, State } from "../../components/common/UI";
 import "../../styles/notifications.css";
-export default function Notifications() {
+export default function Notifications({ compact = false, onClose }) {
   const { feed, error, loading, refresh } = useNotifications(),
-    { search } = useOutletContext(),
+    outlet = useOutletContext(),
     navigate = useNavigate();
+  const [localSearch, setLocalSearch] = useState("");
+  const search = compact ? localSearch : outlet?.search || "";
   const [filter, setFilter] = useState("all"),
     [busy, setBusy] = useState(false),
     [failure, setFailure] = useState("");
@@ -39,8 +41,10 @@ export default function Notifications() {
     }
   }
   async function open(n) {
-    if (n.status !== "Unread" || (await mark(n, "read")))
+    if (n.status !== "Unread" || (await mark(n, "read"))) {
+      onClose?.();
       navigate(notificationTarget(n));
+    }
   }
   async function all() {
     setBusy(true);
@@ -59,24 +63,69 @@ export default function Notifications() {
   }
   return (
     <div className="notification-center">
-      <PageHeader eyebrow="WORKSPACE INBOX" title="Notifications">
-        <div className="notification-center-actions">
-          <button className="secondary" onClick={refresh}>
-            <RefreshCw size={15} /> Refresh notifications
-          </button>
+      {compact ? (
+        <header className="notification-popover-heading">
+          <div>
+            <h2 id="notification-popover-title">Notifications</h2>
+            <span>{feed.unread} unread</span>
+          </div>
           <button
-            className="primary"
+            type="button"
+            className="icon"
+            aria-label="Close notifications"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </header>
+      ) : (
+        <PageHeader eyebrow="WORKSPACE INBOX" title="Notifications">
+          <div className="notification-center-actions">
+            <button className="secondary" onClick={refresh}>
+              <RefreshCw size={15} /> Refresh notifications
+            </button>
+            <button
+              className="primary"
+              disabled={busy || !feed.unread}
+              onClick={all}
+            >
+              <CheckCheck size={16} /> Mark all read
+            </button>
+          </div>
+        </PageHeader>
+      )}
+      {compact && (
+        <div className="notification-popover-tools">
+          <input
+            aria-label="Search notifications"
+            placeholder="Search notifications…"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+          />
+          <button
+            type="button"
+            className="notification-mark-all"
             disabled={busy || !feed.unread}
             onClick={all}
           >
-            <CheckCheck size={16} /> Mark all read
+            <CheckCheck size={14} /> Mark all read
+          </button>
+          <button
+            type="button"
+            className="icon"
+            aria-label="Refresh notifications"
+            onClick={refresh}
+          >
+            <RefreshCw size={15} />
           </button>
         </div>
-      </PageHeader>
-      <p className="notification-center-context">
-        {feed.profile?.fullName || "Workspace"} · {feed.unread} unread · In-app
-        alerts update across the workspace while it is open.
-      </p>
+      )}
+      {!compact && (
+        <p className="notification-center-context">
+          {feed.profile?.fullName || "Workspace"} · {feed.unread} unread ·
+          In-app alerts update across the workspace while it is open.
+        </p>
+      )}
       <div className="notification-center-filters">
         {["all", "unread", "read"].map((value) => (
           <button
@@ -145,10 +194,12 @@ export default function Notifications() {
           ))}
         </div>
       )}
-      <p className="notification-center-context">
-        Notification data is stored in this browser. Email and device push are
-        not connected.
-      </p>
+      {!compact && (
+        <p className="notification-center-context">
+          Notification data is stored in this browser. Email and device push are
+          not connected.
+        </p>
+      )}
     </div>
   );
 }

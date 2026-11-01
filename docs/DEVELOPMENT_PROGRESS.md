@@ -101,3 +101,11 @@ A dedicated Notifications screen supports All/Unread/Read, global search, refres
 Mobile bell remains visible down to 320 px. In-app delivery remains browser-local while the app is open; email/push/background delivery is not connected. New files: modules/notifications.js, hooks/useNotifications.js, pages/notifications/Notifications.jsx, styles/notifications.css. Validation includes three notification browser flows plus pure feed/scope/target/dedup rules.
 
 Final notification validation: all 36 browser checks passed. Inbox navigation dismisses the transient popup so it cannot cover inbox controls; incoming notifications remain visible in the list and badge. Production and preview builds and deployment checks also passed.
+
+## Bell dropdown interaction correction
+
+The user clarified that clicking the bell must open a list over whichever screen is active, not navigate to a new notification page. AppLayout now renders an anchored non-modal notification panel, using the existing inbox actions in compact mode. The panel has independent search, All/Unread/Read filters, Mark all read, refresh, a bounded scrolling list and persistent read/unread controls. Bell, toast View notifications and dashboard View all all open the same panel. Outside click, close and Escape dismiss; focus returns to the bell on explicit close/Escape. Opening/filtering/reading does not change URL or current screen/search/view. Only explicit Open related work navigates. Mobile panel is clamped to viewport width/height; reduced-motion disables entry animation. Legacy direct `/notifications` bookmarks remain supported.
+
+Browser coverage now includes popup route preservation, background board/search preservation, independent scrolling/search, dismissal/focus and phone bounds, alongside the existing delivery/read-state checks.
+
+Dropdown verification: 37 browser checks passed, including the four notification interaction flows. Preview/production builds and deployment checks passed.

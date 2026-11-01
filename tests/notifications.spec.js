@@ -6,13 +6,19 @@ async function login(page) {
     page.getByRole("heading", { name: "Daily work dashboard", exact: true }),
   ).toBeVisible();
 }
-test("bell opens a real inbox; unread/read/all actions persist and update the badge", async ({
+test("bell opens a dropdown on the current screen; unread/read/all actions persist and update the badge", async ({
   page,
 }) => {
   await login(page);
-  await page.getByRole("link", { name: "Notifications", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(
-    page.getByRole("heading", { name: "Notifications", exact: true }),
+    page.getByRole("dialog", { name: "Notifications", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Daily work dashboard", exact: true }),
   ).toBeVisible();
   await expect(
     page.locator(".notification-row.is-unread").first(),
@@ -31,9 +37,15 @@ test("bell opens a real inbox; unread/read/all actions persist and update the ba
   await expect(page.locator(".notification-count")).toHaveText("1");
   await page.reload();
   await expect(page.locator(".notification-count")).toHaveText("1");
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
   await page.getByRole("button", { name: "Unread", exact: true }).click();
   await expect(page.locator(".notification-row")).toHaveCount(1);
-  await page.getByRole("button", { name: "Mark read", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Notifications", exact: true })
+    .getByRole("button", { name: "Mark read", exact: true })
+    .click();
   await expect(page.locator(".notification-count")).toHaveCount(0);
 });
 test("reminders refresh outside dashboard, open the related task document, and do not duplicate", async ({
@@ -51,7 +63,9 @@ test("reminders refresh outside dashboard, open the related task document, and d
   await expect
     .poll(() => page.locator(".notification-count").textContent())
     .toMatch(/[1-9]/);
-  await page.getByRole("link", { name: "Notifications", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
   const row = page
     .locator(".notification-row")
     .filter({ hasText: "is due today" })
@@ -88,9 +102,11 @@ test("mobile bell remains visible and workflow notifications lead to the correct
   ).toContainText("Task ready for review");
   await page.setViewportSize({ width: 320, height: 844 });
   await expect(
-    page.getByRole("link", { name: "Notifications", exact: true }),
+    page.getByRole("button", { name: "Notifications", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Notifications", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
   await expect(
     page.getByRole("region", { name: "New notification" }),
   ).toHaveCount(0);
@@ -107,4 +123,65 @@ test("mobile bell remains visible and workflow notifications lead to the correct
     path: "/tmp/mt-notifications-mobile.png",
     fullPage: true,
   });
+});
+
+test("dropdown scrolls independently, searches and dismisses without losing the underlying screen", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/projects");
+  await page.getByRole("button", { name: "List", exact: true }).click();
+  await expect(page.getByRole("table")).toBeVisible();
+  await page.getByLabel("Search current view").fill("SLI");
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  const panel = page.getByRole("dialog", {
+    name: "Notifications",
+    exact: true,
+  });
+  await expect(panel).toBeVisible();
+  await expect(page).toHaveURL(/\/projects$/);
+  await expect(panel.locator(".notification-row").first()).toBeVisible();
+  await panel
+    .getByLabel("Search notifications")
+    .fill("no notification matches xyz");
+  await expect(panel.locator(".notification-row")).toHaveCount(0);
+  await panel.getByLabel("Search notifications").fill("");
+  expect(
+    await panel
+      .locator(".notification-inbox")
+      .evaluate((el) => el.scrollHeight > el.clientHeight),
+  ).toBe(true);
+  await panel
+    .locator(".notification-inbox")
+    .evaluate((el) => (el.scrollTop = el.scrollHeight));
+  expect(
+    await panel.locator(".notification-inbox").evaluate((el) => el.scrollTop),
+  ).toBeGreaterThan(0);
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Notifications", exact: true }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  await page
+    .getByRole("heading", { name: "Project Boards", exact: true })
+    .click();
+  await expect(panel).toHaveCount(0);
+  await expect(page).toHaveURL(/\/projects$/);
+  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByLabel("Search current view")).toHaveValue("SLI");
+  await page.setViewportSize({ width: 320, height: 650 });
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  await expect(panel).toBeVisible();
+  const box = await panel.boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(320);
+  expect(box.y + box.height).toBeLessThanOrEqual(650);
+  await panel.screenshot({ path: "/tmp/mt-notification-dropdown-mobile.png" });
 });

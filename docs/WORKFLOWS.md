@@ -33,6 +33,8 @@ Print / Save PDF opens a separate A4 print view; click its Print / Save as PDF b
 
 ## Notification inbox
 
-Use the header bell on desktop or mobile. All/Unread/Read filters and current-view search narrow the inbox. Mark read/unread changes the persistent badge; Mark all read affects the current preview lens. Open related work marks the alert read and opens its task document or linked module record. Task transitions notify reviewers/assignees, and deadlines/review/digest reminders honor the existing reminder preferences.
+Use the header bell on desktop or mobile to open an anchored dropdown without navigating away. All/Unread/Read filters and current-view search narrow the inbox. Mark read/unread changes the persistent badge; Mark all read affects the current preview lens. Open related work marks the alert read and opens its task document or linked module record. Task transitions notify reviewers/assignees, and deadlines/review/digest reminders honor the existing reminder preferences.
 
 The feed refreshes immediately after local changes, on focus/storage changes and every 15 seconds throughout the app, not only on the dashboard. New unread items show an in-app popup. Existing history is not replayed at login. These are browser-local alerts while the app is open, not email/device push notifications.
+
+The notification dropdown has its own search and scroll area. Opening it, filtering and marking read preserve the current screen, current-view search and selected board view. Outside click, Escape or its close button dismiss it; Escape returns focus to the bell. Only the explicit Open related work action navigates to the task/record. Dashboard View all and live alert View notifications open the same dropdown. The old `/notifications` URL remains available for existing bookmarks, but the bell no longer opens it.

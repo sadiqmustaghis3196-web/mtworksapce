@@ -1,3 +1,4 @@
+import Notifications from "../pages/notifications/Notifications";
 import useNotifications from "../hooks/useNotifications";
 import { isPreview } from "../preview/config";
 import { useState, useEffect, useRef } from "react";
@@ -49,6 +50,68 @@ export default function AppLayout() {
   const { feed: notificationFeed, loading: notificationLoading } =
     useNotifications();
   const [latestNotification, setLatestNotification] = useState(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const bellRef = useRef(null),
+    notificationPanelRef = useRef(null);
+  const [panelPosition, setPanelPosition] = useState({ top: 62, right: 12 });
+  function closeNotifications() {
+    setNotificationsOpen(false);
+    bellRef.current?.focus();
+  }
+  useEffect(() => {
+    const show = () => {
+      setNotificationsOpen(true);
+      setProfile(false);
+      setLatestNotification(null);
+    };
+    window.addEventListener("mt-open-notifications", show);
+    return () => window.removeEventListener("mt-open-notifications", show);
+  }, []);
+  useEffect(() => {
+    if (!notificationsOpen) return;
+    setLatestNotification(null);
+    const position = () => {
+      const r = bellRef.current?.getBoundingClientRect();
+      if (r)
+        setPanelPosition({
+          top: Math.max(8, r.bottom + 12),
+          right: Math.max(12, window.innerWidth - r.right),
+        });
+    };
+    position();
+    notificationPanelRef.current?.focus();
+    const outside = (e) => {
+      if (
+        !notificationPanelRef.current?.contains(e.target) &&
+        !bellRef.current?.contains(e.target)
+      )
+        setNotificationsOpen(false);
+    };
+    const key = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeNotifications();
+      }
+    };
+    const focus = (e) => {
+      if (
+        !notificationPanelRef.current?.contains(e.target) &&
+        !bellRef.current?.contains(e.target)
+      )
+        setNotificationsOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", key, true);
+    document.addEventListener("focusin", focus);
+    window.addEventListener("resize", position);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", key, true);
+      document.removeEventListener("focusin", focus);
+      window.removeEventListener("resize", position);
+    };
+  }, [notificationsOpen]);
   const seenNotifications = useRef(null);
   useEffect(() => {
     if (notificationLoading) return;
@@ -59,11 +122,15 @@ export default function AppLayout() {
         (n) =>
           n.status === "Unread" && !seenNotifications.current.ids.has(n.id),
       );
-      if (fresh && !window.location.pathname.startsWith("/notifications"))
+      if (
+        fresh &&
+        !notificationsOpen &&
+        !window.location.pathname.startsWith("/notifications")
+      )
         setLatestNotification(fresh);
     } else setLatestNotification(null);
     seenNotifications.current = { context, ids };
-  }, [notificationFeed, notificationLoading]);
+  }, [notificationFeed, notificationLoading, notificationsOpen]);
   useEffect(() => {
     if (!latestNotification) return;
     const timer = setTimeout(() => setLatestNotification(null), 10000);
@@ -82,6 +149,7 @@ export default function AppLayout() {
   const searchRef = useRef(null),
     location = useLocation();
   useEffect(() => {
+    setNotificationsOpen(false);
     if (location.pathname.startsWith("/notifications"))
       setLatestNotification(null);
   }, [location.pathname]);
@@ -250,10 +318,19 @@ export default function AppLayout() {
             >
               {light ? <Moon size={19} /> : <Sun size={19} />}
             </button>
-            <Link
+            <button
+              ref={bellRef}
+              type="button"
               className="icon notification"
-              to="/notifications"
               aria-label="Notifications"
+              aria-expanded={notificationsOpen}
+              aria-haspopup="dialog"
+              aria-controls="notification-popover"
+              onClick={() => {
+                setNotificationsOpen((v) => !v);
+                setProfile(false);
+                setLatestNotification(null);
+              }}
             >
               <Bell size={19} />
               {isPreview && notificationFeed.unread > 0 && (
@@ -263,7 +340,7 @@ export default function AppLayout() {
                     : notificationFeed.unread}
                 </span>
               )}
-            </Link>
+            </button>
             <span className="premium">★ PREMIUM</span>
             <div className="profile-wrap">
               <button
@@ -348,12 +425,14 @@ export default function AppLayout() {
             <div>
               <strong>{latestNotification.title}</strong>
               <p>{latestNotification.message}</p>
-              <Link
-                to="/notifications"
-                onClick={() => setLatestNotification(null)}
+              <button
+                className="notification-toast-open"
+                onClick={() =>
+                  window.dispatchEvent(new Event("mt-open-notifications"))
+                }
               >
                 View notifications →
-              </Link>
+              </button>
             </div>
             <button
               className="icon"
@@ -362,6 +441,24 @@ export default function AppLayout() {
             >
               <X size={15} />
             </button>
+          </section>
+        )}
+        {notificationsOpen && (
+          <section
+            ref={notificationPanelRef}
+            id="notification-popover"
+            role="dialog"
+            aria-modal="false"
+            aria-labelledby="notification-popover-title"
+            tabIndex={-1}
+            className="notification-popover"
+            style={{
+              top: panelPosition.top,
+              right: panelPosition.right,
+              "--notification-top": `${panelPosition.top}px`,
+            }}
+          >
+            <Notifications compact onClose={closeNotifications} />
           </section>
         )}
         <main>
