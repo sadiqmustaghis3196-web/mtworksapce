@@ -1,3 +1,5 @@
+import { validateFile } from "../services/files";
+import { hydrateWorkspace, workspaceRequest, today } from "../modules/store";
 import { initialPreviewData, previewUser } from "./data";
 import { previewCredentials } from "./config";
 const DATA_KEY = "mt-nexus-ui-preview-v1",
@@ -22,6 +24,7 @@ function load() {
 function save(data) {
   try {
     localStorage.setItem(DATA_KEY, JSON.stringify(data));
+    window.dispatchEvent(new Event("mt-workspace-change"));
   } catch {
     fail("Browser storage is unavailable. Preview changes could not be saved.");
   }
@@ -29,6 +32,12 @@ function save(data) {
 const decorate = (task, data) => ({
   ...task,
   project: data.projects.find((p) => p.id === task.projectId),
+  assignees: task.assignees?.map((a) => ({
+    ...a,
+    employee:
+      data.records?.employees?.find((e) => e.id === a.employee?.id) ||
+      a.employee,
+  })),
 });
 export function resetPreview() {
   localStorage.removeItem(DATA_KEY);
@@ -58,13 +67,49 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
   if (sessionStorage.getItem(SESSION_KEY) !== "active")
     fail("Sign in to the UI preview.", 401);
   if (path === "/auth/me") return { user: previewUser };
-  const data = load();
+  const data = hydrateWorkspace(load());
+  if (path.startsWith("/workspace/")) {
+    const result = workspaceRequest(data, path, { method, body });
+    if (method !== "GET") save(data);
+    return result;
+  }
   if (path === "/projects" && method === "GET") return { data: data.projects };
   if (path === "/dashboard/overview")
     return {
       data: {
         projects: data.projects.length,
         tasks: data.tasks.length,
+        employees: data.records.employees.filter((e) => e.status !== "Inactive")
+          .length,
+        clients: data.records.clients.filter((c) => c.status === "Active")
+          .length,
+        attendance: data.records.attendance.filter((a) => a.date === today())
+          .length,
+        pendingLeaves: data.records.leaves.filter((l) => l.status === "Pending")
+          .length,
+        approvals: [
+          {
+            title: "Leave requests",
+            count: data.records.leaves.filter((l) => l.status === "Pending")
+              .length,
+            path: "/attendance/leaves",
+          },
+          {
+            title: "Payroll approvals",
+            count: data.records.payroll.filter(
+              (p) => p.status === "Pending approval",
+            ).length,
+            path: "/finance/payroll",
+          },
+          {
+            title: "Creative reviews",
+            count: data.records.creativeRequests.filter(
+              (r) => r.status === "Review",
+            ).length,
+            path: "/creative/requests",
+          },
+        ],
+        activity: data.records.auditLogs.slice(0, 8),
         inProgress: data.tasks.filter((t) => t.stage === 2).length,
         review: data.tasks.filter((t) => t.stage === 3).length,
         completed: data.tasks.filter((t) => t.stage === 4).length,
@@ -97,7 +142,35 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
       return { success: true, data: decorate(task, data) };
     }
   }
-  const match = path.match(/^\/tasks\/(\d+)(?:\/(transition|comments))?$/);
+  const checklist = path.match(
+    /^\/tasks\/(\d+)\/(?:checklists\/([^/]+)\/items|checklist-items\/([^/]+))$/,
+  );
+  if (checklist) {
+    const task = data.tasks.find((t) => t.id === Number(checklist[1]));
+    if (!task) fail("Task not found.", 404);
+    if (checklist[2] && method === "POST") {
+      const list = task.checklists.find((c) => c.id === checklist[2]);
+      if (!list) fail("Checklist not found.", 404);
+      if (!body.text?.trim()) fail("Enter a checklist item.");
+      list.items.push({
+        id: crypto.randomUUID(),
+        text: body.text.trim(),
+        isDone: false,
+      });
+    } else if (checklist[3] && method === "PATCH") {
+      const item = task.checklists
+        .flatMap((c) => c.items)
+        .find((i) => i.id === checklist[3]);
+      if (!item) fail("Checklist item not found.", 404);
+      if (typeof body.isDone !== "boolean") fail("Invalid checklist state.");
+      item.isDone = body.isDone;
+    } else fail("Unsupported checklist operation.");
+    save(data);
+    return { data: decorate(task, data) };
+  }
+  const match = path.match(
+    /^\/tasks\/(\d+)(?:\/(transition|comments|assign|checklists|attachments))?$/,
+  );
   if (match) {
     const task = data.tasks.find((t) => t.id === Number(match[1]));
     if (!task) fail("Preview task not found.", 404);
@@ -116,6 +189,17 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         createdAt: new Date().toISOString(),
       });
       task.stage = body.targetStage;
+      const creative = data.records.creativeRequests.find(
+        (r) => r.taskId === task.id,
+      );
+      if (creative)
+        creative.status =
+          {
+            2: "In progress",
+            3: "Review",
+            4: "Approved",
+            5: "Revision requested",
+          }[task.stage] || creative.status;
       if (task.stage === 4) {
         task.progress = 100;
         task.approvedBy = "Preview Admin";
@@ -133,9 +217,48 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         content: body.content,
         createdAt: new Date().toISOString(),
       });
+    } else if (match[2] === "assign" && method === "POST") {
+      if (
+        !Array.isArray(body.employeeIds) ||
+        body.employeeIds.some(
+          (id) => !data.records.employees.some((e) => e.id === id),
+        )
+      )
+        fail("Choose valid employees.");
+      const project = data.projects.find((p) => p.id === task.projectId);
+      if (
+        project?.memberIds?.length &&
+        body.employeeIds.some((id) => !project.memberIds.includes(id))
+      )
+        fail(
+          "Assignees must be members of the project. Add them to the project team first.",
+        );
+      task.assignees = [...new Set(body.employeeIds)].map((id) => ({
+        id: crypto.randomUUID(),
+        employee: data.records.employees.find((e) => e.id === id),
+      }));
+    } else if (match[2] === "checklists" && method === "POST") {
+      if (!body.title?.trim()) fail("Enter a checklist title.");
+      task.checklists.push({
+        id: crypto.randomUUID(),
+        title: body.title.trim(),
+        items: [],
+      });
+    } else if (match[2] === "attachments" && method === "POST") {
+      const file = validateFile(body.file);
+      task.attachments.push({
+        id: crypto.randomUUID(),
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: `${Math.ceil(file.size / 1024)} KB`,
+        fileUrl: file.data,
+        uploadedBy: "Preview Admin",
+        createdAt: new Date().toISOString(),
+      });
     } else if (!match[2] && method === "PATCH") {
       for (const key of [
         "title",
+        "startDate",
         "description",
         "priority",
         "dueDate",

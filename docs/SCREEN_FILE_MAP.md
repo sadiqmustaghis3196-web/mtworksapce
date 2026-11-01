@@ -1,16 +1,26 @@
 # Current screen map
 
-Active mode is now the user-requested database-free UI preview. Login, dashboard and board use isolated browser sample data in preview builds. The integration limitations below refer to the real API mode.
+All routes below now have interactive browser-local screens. No “Module not available yet” placeholder route remains in the preview app. Real backend integration remains separate and incomplete.
 
-| Route | Source | Current status |
-|---|---|---|
-| /login, /forgot-password, /reset-password | src/pages/auth/Login.jsx | Forms built; login/reset integration blocked on Prisma, mail transport unverified |
-| /profile | src/pages/auth/Profile.jsx | Session identity and password form; backend integration unverified |
-| /dashboard | src/pages/dashboard/Dashboard.jsx | Authorized task counts/deadlines API implemented; DB checks pending |
-| /projects, /projects/:projectId/:view | src/pages/projects/Projects.jsx | Board/list/date groups/timeline UI with real API calls; browser fixture tests passed |
-| Shared task dialog | src/components/tasks/TaskModal.jsx | Edit/comment/activity; checklists/attachments currently read-only; assignment, subtask and upload actions outstanding |
-| All other module routes | src/main.jsx | Explicit unavailable state; no module completion claimed |
+| Routes | Screens / source |
+|---|---|
+| /login, /forgot-password, /reset-password | Login.jsx; public preview login works; real email/password reset unavailable in preview |
+| /dashboard | Dashboard.jsx; current task/people/client/attendance metrics, deadlines, approvals, activity |
+| /projects, /projects/:projectId/board, /list, /calendar, /timeline | Projects.jsx; Board/List, month grid and proportional date-axis timeline |
+| /projects/manage | Project CRUD, team membership, related tasks and board links |
+| /clients, /clients/contacts, /clients/projects | Clients, contacts, related projects |
+| /hiring/jobs, /hiring/applicants, /hiring/interviews, /hiring/offers | Recruitment and hiring pipeline |
+| /employees, /employees/documents | Employee directory/profiles/documents and employment actions |
+| /attendance, /attendance/leaves | Check-in/out, attendance records, leave requests/approvals |
+| /internships/programs, /internships/interns, /internships/reviews | Programs, enrollment/mentor directory and evaluations |
+| /finance/invoices, /finance/items, /finance/payments, /finance/expenses, /finance/payroll | Invoice-item/payment ledger, expenses and approval-controlled payroll records |
+| /creative/requests, /creative/assets, /creative/revisions | Brief/review pipeline, uploaded assets, revision history |
+| /crm/leads, /crm/opportunities, /crm/activities | Sales pipelines, conversion and follow-ups |
+| /support/tickets, /support/responses | Ticket assignment/resolution/reopen and responses |
+| /departments | Departments, managers, parent hierarchy, member counts and related work |
+| /admin/users, /admin/roles, /admin/audit-logs, /admin/settings | Preview account/permission configuration, audit records, workspace settings and backup |
+| /notifications, /profile | Notification read state; current profile (real password changes remain unavailable in preview) |
 
-Shell: src/layouts/AppLayout.jsx. Shared tables/dialogs/states: src/components/common/UI.jsx. Theme and responsive breakpoints: src/styles/app.css. API transport: src/services/api.js. Session identity: src/context/AuthContext.jsx.
+Business module screens use `src/pages/modules/ModuleWorkspace.jsx` and `RecordForm.jsx`, driven by `src/modules/catalog.js`. Lists, details, forms and workflows are shared reusable components rather than duplicated HTML screens. Record detail routes append the record ID to the listed collection path; add/edit dialogs preserve the current section.
 
-The calendar currently groups tasks by due date; a month-grid calendar and proportional date-axis timeline remain outstanding. Preview samples live in src/preview/data.js and are used only when VITE_UI_PREVIEW=true. Explicit build:production builds exclude the preview credentials and sample-data adapter. The real-API UI fixture tests remain in tests/workspace.spec.js.
+Task dialog: `src/components/tasks/TaskModal.jsx`; schedules: `ScheduleViews.jsx`; shell: `src/layouts/AppLayout.jsx`; file validation: `src/services/files.js`.

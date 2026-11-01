@@ -25,14 +25,12 @@ test("public preview login, edits, transitions, refresh, reset and logout work w
   await page.getByLabel("Password", { exact: true }).fill("NexusUI@2026!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByText("UI PREVIEW", { exact: true })).toBeVisible();
-  const card = page
-    .locator(".task-card")
-    .filter({
-      has: page.getByRole("button", {
-        name: "#426 SLI measurement",
-        exact: true,
-      }),
-    });
+  const card = page.locator(".task-card").filter({
+    has: page.getByRole("button", {
+      name: "#426 SLI measurement",
+      exact: true,
+    }),
+  });
   await card.getByRole("button", { name: "Send for Review" }).click();
   await expect(
     card.getByRole("button", { name: "Approve", exact: true }),
@@ -50,6 +48,10 @@ test("public preview login, edits, transitions, refresh, reset and logout work w
     page.getByRole("button", { name: "#426 Preview task edited" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Reset sample data" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Reset sample data", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "#426 SLI measurement" }),
   ).toBeVisible();

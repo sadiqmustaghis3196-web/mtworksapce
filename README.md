@@ -61,3 +61,9 @@ Frontend port 8000, API port 5000. Production requires HTTPS, NODE_ENV=productio
 ## Vercel
 
 See [Vercel deployment instructions](docs/VERCEL_DEPLOYMENT.md). Current default: static UI preview. Hosted PostgreSQL, Prisma generation and account provisioning apply only after restoring the full-stack configuration for the later database phase.
+
+## Working software-house workflows
+
+Previously unavailable module screens are now implemented in the browser-local workspace: clients/contacts/projects, recruitment to employee onboarding, employee documents, attendance/leaves, internship reviews, invoice/payment ledgers and payroll approvals, creative review with linked board tasks, CRM conversion, support, departments and preview account/permission administration. Search, filters, pipeline views, history, notifications, CSV export and Settings → workspace JSON backup are included.
+
+See [workflow guide](docs/WORKFLOWS.md), [current checkpoint](docs/DEVELOPMENT_PROGRESS.md) and [Roman Urdu lesson](docs/lessons/03-module-workflows.md). `npm run test:workflows` tests business rules; `npm run test:preview` checks the built browser app on port 8002. These are working local workflows, **not completed server/database integrations**. No email, bank transfer or real user account is created by preview actions.

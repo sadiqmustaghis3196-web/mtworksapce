@@ -1,3 +1,7 @@
+import {
+  TaskCalendar,
+  TaskTimeline,
+} from "../../components/tasks/ScheduleViews";
 import { isPreview } from "../../preview/config";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams, useNavigate } from "react-router-dom";
@@ -274,60 +278,9 @@ export default function Projects() {
           ]}
         />
       ) : view === "calendar" ? (
-        <div className="calendar-view">
-          {[
-            ...new Set(
-              filtered.map((t) => t.dueDate?.slice(0, 10) || "Unscheduled"),
-            ),
-          ]
-            .sort()
-            .map((date) => (
-              <section className="panel" key={date}>
-                <h3>
-                  <CalendarDays size={17} /> {date}
-                </h3>
-                {filtered
-                  .filter(
-                    (t) => (t.dueDate?.slice(0, 10) || "Unscheduled") === date,
-                  )
-                  .map((t) => (
-                    <button
-                      className="calendar-task"
-                      key={t.id}
-                      onClick={() => setSelected(t)}
-                    >
-                      <span className="badge category">{stages[t.stage]}</span>#
-                      {t.id} {t.title}
-                    </button>
-                  ))}
-              </section>
-            ))}
-          {!filtered.length && <State>No scheduled tasks.</State>}
-        </div>
+        <TaskCalendar tasks={filtered} onOpen={setSelected} />
       ) : (
-        <div className="timeline-view">
-          <div className="timeline-header">
-            Task timeline <span>Created → Due date</span>
-          </div>
-          {filtered.map((t) => (
-            <button key={t.id} onClick={() => setSelected(t)}>
-              <span>
-                #{t.id} {t.title}
-              </span>
-              <div className="timeline-track">
-                <div
-                  className="timeline-bar"
-                  style={{
-                    width: `${Math.max(10, Math.min(100, ((Date.parse(t.dueDate || t.createdAt) - Date.parse(t.createdAt)) / 86400000 + 1) * 4))}%`,
-                  }}
-                >
-                  {t.createdAt?.slice(0, 10)} →{" "}
-                  {t.dueDate?.slice(0, 10) || "No deadline"}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <TaskTimeline tasks={filtered} onOpen={setSelected} />
       )}
       <footer className="board-footer">
         <span>

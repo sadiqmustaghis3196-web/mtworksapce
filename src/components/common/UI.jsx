@@ -23,13 +23,15 @@ export function State({ error, loading, children }) {
 }
 export function Modal({ title, children, onClose, wide = false }) {
   const ref = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const before = document.activeElement;
     ref.current.showModal();
     const close = (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
     };
     const dialog = ref.current;

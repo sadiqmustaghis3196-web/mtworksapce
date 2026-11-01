@@ -1,3 +1,5 @@
+import ModuleWorkspace from "./pages/modules/ModuleWorkspace";
+import { modules } from "./modules/catalog";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -32,28 +34,6 @@ function Protected() {
     );
   return user ? <Outlet /> : <Navigate to="/login" replace />;
 }
-function PendingModule() {
-  return (
-    <>
-      <PageHeader
-        eyebrow="IMPLEMENTATION IN PROGRESS"
-        title="Module not available yet"
-      />
-      <section className="panel">
-        <p>
-          This module has not completed its API, authorization and database
-          integration checks.
-        </p>
-        <p className="muted">
-          No sample records or simulated save actions are shown.
-        </p>
-        <Link className="secondary" to="/projects">
-          Back to project boards
-        </Link>
-      </section>
-    </>
-  );
-}
 function NotFound() {
   return (
     <div className="panel">
@@ -78,26 +58,19 @@ function App() {
               <Route path="projects" element={<Projects />} />
               <Route path="projects/:projectId/:view" element={<Projects />} />
               <Route path="profile" element={<Profile />} />
-              {[
-                "clients",
-                "hiring",
-                "employees",
-                "attendance",
-                "internships",
-                "finance",
-                "creative",
-                "crm",
-                "support",
-                "departments",
-                "admin/users",
-                "notifications",
-              ].map((path) => (
-                <Route
-                  key={path}
-                  path={`${path}/*`}
-                  element={<PendingModule />}
-                />
-              ))}
+              <Route
+                path="projects/manage/*"
+                element={<ModuleWorkspace module="projects" />}
+              />
+              {Object.keys(modules)
+                .filter((key) => key !== "projects")
+                .map((key) => (
+                  <Route
+                    key={key}
+                    path={`${key}/*`}
+                    element={<ModuleWorkspace module={key} />}
+                  />
+                ))}
               <Route path="*" element={<NotFound />} />
             </Route>
           </Route>

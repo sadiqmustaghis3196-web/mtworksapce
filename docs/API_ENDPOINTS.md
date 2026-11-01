@@ -25,3 +25,7 @@ All mutating requests require `X-Requested-With: XMLHttpRequest`, a trusted Orig
 | POST /api/users/:id/reset-password | Send reset instructions | users.update + scope; SMTP required |
 
 Legacy employees/clientOps reads require Super Admin and organization filtering while full module authorization is being implemented. Health route is a development diagnostic. Most master-spec endpoints remain **unimplemented**; the milestone map is authoritative.
+
+## Browser-local module adapter (not HTTP backend endpoints)
+
+In the default UI-preview build only, `/workspace/data`, `/workspace/:entity`, `/workspace/:entity/:id`, and `/workspace/:entity/:id/actions/:action` are api() paths handled inside `src/preview/api.js` / `src/modules/store.js`, without fetch. Attendance uses `/workspace/attendance/check-in` and `/check-out`. Task preview actions also support `/tasks/:id/assign`, `/checklists`, checklist items, `/attachments` and parentTaskId for subtasks. These are not newly implemented Express endpoints. Their database-backed equivalents remain pending.

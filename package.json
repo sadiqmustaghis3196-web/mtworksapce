@@ -16,7 +16,8 @@
     "prepare:production": "node scripts/prepare-production.mjs",
     "test:preview": "playwright test --config playwright.preview.config.js",
     "build:production": "VITE_UI_PREVIEW=false vite build",
-    "dev:production": "VITE_UI_PREVIEW=false vite --host 0.0.0.0"
+    "dev:production": "VITE_UI_PREVIEW=false vite --host 0.0.0.0",
+    "test:workflows": "node --test tests/workflows.test.js"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
