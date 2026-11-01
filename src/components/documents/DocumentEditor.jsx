@@ -1,3 +1,4 @@
+import ImagePreview from "./ImagePreview";
 import { useRef, useState } from "react";
 import {
   ArrowUp,
@@ -17,7 +18,7 @@ export function DocumentBlocks({ blocks }) {
     <div className="document-render-block" key={b.id}>
       {b.type === "image" ? (
         <figure>
-          <img src={b.src} alt={b.caption || "Task reference"} />
+          <ImagePreview src={b.src} caption={b.caption} />
           {b.caption && <figcaption>{b.caption}</figcaption>}
         </figure>
       ) : b.type === "heading" ? (
@@ -333,7 +334,7 @@ export default function DocumentEditor({
               </div>
               {b.type === "image" ? (
                 <figure>
-                  <img src={b.src} alt={b.caption || "Task reference"} />
+                  <ImagePreview src={b.src} caption={b.caption} />
                   <input
                     aria-label={`Image caption ${index + 1}`}
                     placeholder="Image caption…"

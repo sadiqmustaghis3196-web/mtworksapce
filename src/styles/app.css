@@ -3689,3 +3689,69 @@ td .link {
 @media(max-width:760px){.top-actions > .notification{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}.notification-count{pointer-events:none}}
 
 .live-notification-toast{position:fixed;z-index:60;right:20px;top:120px;width:min(390px,calc(100vw - 28px));padding:17px;display:flex;gap:12px;border:1px solid #48d5ef88;border-left:4px solid #40d0e8;border-radius:12px;background:#182b43;color:#d7edff;box-shadow:0 10px 40px #0007}.live-notification-toast>svg{flex-shrink:0;color:#54d4ef}.live-notification-toast>div{flex:1;min-width:0}.live-notification-toast strong{font-size:13px}.live-notification-toast p{font-size:11px;line-height:1.7;overflow-wrap:anywhere;max-height:75px;overflow:auto;color:#b4cbe3}.live-notification-toast a{font-size:11px;color:#65dfeb}.live-notification-toast .icon{width:24px;height:24px;flex-shrink:0}.light .live-notification-toast{background:#edf8ff;color:#173c5b}.light .live-notification-toast p{color:#3e5f7d}
+.clickable-task-card,
+.daily-task-card[role="group"] {
+  cursor: pointer;
+}
+.clickable-task-card:focus-visible,
+.daily-task-card[role="group"]:focus-visible {
+  outline: 2px solid #56d3f1;
+  outline-offset: 3px;
+}
+.task-card.is-dragging {
+  opacity: 0.45;
+  outline: 2px dashed #61d9ec;
+}
+.stage.can-drop {
+  outline: 2px dashed #4bcbe488;
+  outline-offset: -2px;
+}
+.stage.can-drop.drag-over {
+  background: #1e4c665e;
+  outline: 3px solid #43d9c0;
+}
+.task-move-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #88a5cd22;
+}
+.task-drag-handle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  touch-action: none;
+  background: transparent;
+  color: #9bb6d7;
+  border: 0;
+  padding: 4px 0;
+  font-size: 9px;
+  cursor: grab;
+}
+.task-drag-handle:active {
+  cursor: grabbing;
+}
+.task-move-tools label {
+  margin: 0;
+}
+.task-move-tools select {
+  font-size: 9px;
+  padding: 4px 7px;
+  background: #263955;
+  color: #c1d9f2;
+  border: 1px solid #86a2c533;
+  border-radius: 5px;
+  max-width: 125px;
+  width: auto;
+  margin: 0;
+}
+.task-move-tools button:disabled,
+.task-move-tools select:disabled {
+  opacity: 0.4;
+}
+.light .task-drag-handle {
+  color: #456787;
+}

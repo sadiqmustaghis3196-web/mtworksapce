@@ -1,3 +1,4 @@
+import { cardSurfaceClick } from "../../modules/taskInteraction";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -549,6 +550,21 @@ export default function DailyDashboard() {
                     <article
                       className={`daily-task-card phase-${task.reportedPhase} ${task.stage === 2 ? "task-working" : ""} ${task.dayEntries.length ? "task-updated" : ""}`}
                       key={task.id}
+                      tabIndex={0}
+                      role="group"
+                      aria-label={`Task #${task.id} ${task.title}`}
+                      onClick={(e) =>
+                        cardSurfaceClick(e, task, setSelectedTask)
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          e.target === e.currentTarget &&
+                          ["Enter", " "].includes(e.key)
+                        ) {
+                          e.preventDefault();
+                          setSelectedTask(task);
+                        }
+                      }}
                     >
                       <div className="daily-task-top">
                         <span className="day-badge">

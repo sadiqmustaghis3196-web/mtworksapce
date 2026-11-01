@@ -1,4 +1,10 @@
+import { useRef } from "react";
 import {
+  availableStages,
+  cardSurfaceClick,
+} from "../../modules/taskInteraction";
+import {
+  GripVertical,
   CalendarDays,
   Folder,
   Flag,
@@ -50,10 +56,94 @@ export function Actions({ task, canReview, onTransition }) {
     </div>
   );
 }
-export default function TaskCard({ task, onOpen, onTransition, canReview }) {
+export default function TaskCard({
+  task,
+  onOpen,
+  onTransition,
+  canReview,
+  onDragTask,
+  onDragFinish,
+  onTouchDrag,
+  dragging,
+  busy,
+}) {
+  const suppressClick = useRef(false);
+  const moves = availableStages(task, canReview);
   const names = task.assignees?.map((a) => a.employee?.fullName) || [];
   return (
-    <article className="task-card">
+    <article
+      className={`task-card clickable-task-card ${dragging ? "is-dragging" : ""}`}
+      tabIndex={0}
+      role="group"
+      aria-label={`Task #${task.id} ${task.title}`}
+      draggable={!!onDragTask && !busy && moves.length > 0}
+      onClick={(e) => {
+        if (!suppressClick.current) cardSurfaceClick(e, task, onOpen);
+      }}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && ["Enter", " "].includes(e.key)) {
+          e.preventDefault();
+          onOpen(task);
+        }
+      }}
+      onDragStart={(e) => {
+        if (
+          e.target.closest("button,select,input,a") &&
+          !e.target.closest(".task-drag-handle")
+        ) {
+          e.preventDefault();
+          return;
+        }
+        suppressClick.current = true;
+        e.dataTransfer.setData("text/plain", String(task.id));
+        e.dataTransfer.effectAllowed = "move";
+        onDragTask?.(task);
+      }}
+      onDragEnd={() => {
+        onDragFinish?.();
+        setTimeout(() => {
+          suppressClick.current = false;
+        }, 150);
+      }}
+    >
+      {onDragTask && moves.length > 0 && (
+        <div className="task-move-tools">
+          <button
+            type="button"
+            className="task-drag-handle"
+            aria-label={`Drag task #${task.id}`}
+            title="Drag to a highlighted column"
+            disabled={busy}
+            onPointerDown={(e) => {
+              if (e.pointerType !== "mouse") {
+                e.preventDefault();
+                onTouchDrag?.(task, e);
+              }
+            }}
+          >
+            <GripVertical size={16} /> Drag
+          </button>
+          <label>
+            <select
+              aria-label={`Move task #${task.id}`}
+              value=""
+              disabled={busy}
+              onChange={(e) => {
+                if (e.target.value !== "")
+                  onTransition(task, Number(e.target.value));
+              }}
+            >
+              <option value="">Move to…</option>
+              {moves.map((i) => (
+                <option value={i} key={i}>
+                  {stages[i]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
       <div className="badges">
         <span className="badge category">{task.category}</span>
         {task.stage === 2 &&

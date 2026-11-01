@@ -89,3 +89,9 @@ Print / Save PDF opens an A4 print view containing the ordered document, ownersh
 ## In-app notifications
 
 The bell opens a dropdown over the current screen with All/Unread/Read filters, persistent read state, Mark all read and links to related task documents/records. Assignments and task stage changes generate alerts; deadline reminders refresh throughout the open app every 15 seconds and after local changes. New alerts show an in-app popup, including on mobile. Reminder switches remain in Dashboard → Notification preferences. Data is browser-local; email/device push is not connected. Run `npm run test:notifications` and the browser suite to verify delivery, scope and read-state behavior.
+
+## Card movement and image previews
+
+Drag board cards (or their Drag handle) onto highlighted workflow columns; touch/pen dragging uses the handle. Move to… provides a keyboard/mobile alternative. Existing review/rejection/rework rules apply; Reject still asks for a reason. Card metadata/background and Enter/Space on a focused card open its task document, while action controls keep their own behavior.
+
+Document images now appear as compact thumbnails in edit and page-preview modes. Click to open a full-image viewer; Close/Escape returns to the document. PDF printing retains the original image content.

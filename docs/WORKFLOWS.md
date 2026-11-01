@@ -38,3 +38,9 @@ Use the header bell on desktop or mobile to open an anchored dropdown without na
 The feed refreshes immediately after local changes, on focus/storage changes and every 15 seconds throughout the app, not only on the dashboard. New unread items show an in-app popup. Existing history is not replayed at login. These are browser-local alerts while the app is open, not email/device push notifications.
 
 The notification dropdown has its own search and scroll area. Opening it, filtering and marking read preserve the current screen, current-view search and selected board view. Outside click, Escape or its close button dismiss it; Escape returns focus to the bell. Only the explicit Open related work action navigates to the task/record. Dashboard View all and live alert View notifications open the same dropdown. The old `/notifications` URL remains available for existing bookmarks, but the bell no longer opens it.
+
+## Move and open cards
+
+On the board, drag a card or its handle to a highlighted next stage. On touch screens use the handle; Move to… also works with a keyboard. Existing approval/rejection gates remain: Review→Done is approval, Review→Reject asks for instructions, and Done/Reject→In Progress is rework. Refresh preserves the same task and transition history. Click non-control areas of a board or daily-work card to open it; controls perform their own action.
+
+Uploaded document images are small clickable previews. Click one to open the larger original; Escape or Close image returns to the task without closing its document. PDF output continues to include the image in its document order.

@@ -1,3 +1,4 @@
+import { availableStages } from "../../modules/taskInteraction";
 import DocumentEditor from "../../components/documents/DocumentEditor";
 import { validateDocument } from "../../modules/taskDocument";
 import {
@@ -5,7 +6,7 @@ import {
   TaskTimeline,
 } from "../../components/tasks/ScheduleViews";
 import { isPreview } from "../../preview/config";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   useOutletContext,
   useParams,
@@ -58,6 +59,74 @@ export default function Projects() {
     [adding, setAdding] = useState(null),
     [reject, setReject] = useState(null),
     [busy, setBusy] = useState(false);
+  const [dragTask, setDragTask] = useState(null),
+    [dragOver, setDragOver] = useState(null);
+  const touchDrag = useRef(null),
+    boardRef = useRef(null);
+  function finishDrag() {
+    setDragTask(null);
+    setDragOver(null);
+    touchDrag.current = null;
+  }
+  async function dropTask(task, index) {
+    finishDrag();
+    if (!task || task.stage === index || busy) return;
+    if (!availableStages(task, canReview).includes(index)) {
+      setError(
+        "Move to a highlighted column. Review approval and rejection rules still apply.",
+      );
+      return;
+    }
+    await transition(task, index);
+  }
+  function startTouchDrag(task, e) {
+    if (busy) return;
+    touchDrag.current = { task, x: e.clientX, y: e.clientY, moved: false };
+    setDragTask(task);
+  }
+  useEffect(() => {
+    if (!dragTask || !touchDrag.current) return;
+    const move = (e) => {
+      const touch = touchDrag.current;
+      if (!touch) return;
+      e.preventDefault();
+      if (Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > 8)
+        touch.moved = true;
+      const target = document
+        .elementFromPoint(e.clientX, e.clientY)
+        ?.closest("[data-stage-index]");
+      setDragOver(target ? Number(target.dataset.stageIndex) : null);
+      const board = boardRef.current,
+        rect = board?.getBoundingClientRect();
+      if (rect) {
+        if (e.clientX > rect.right - 45) board.scrollLeft += 22;
+        if (e.clientX < rect.left + 45) board.scrollLeft -= 22;
+      }
+    };
+    const end = (e) => {
+      const touch = touchDrag.current;
+      const target = document
+        .elementFromPoint(e.clientX, e.clientY)
+        ?.closest("[data-stage-index]");
+      if (touch?.moved && target)
+        dropTask(touch.task, Number(target.dataset.stageIndex));
+      else finishDrag();
+    };
+    const cancel = () => finishDrag();
+    const key = (e) => {
+      if (e.key === "Escape") finishDrag();
+    };
+    document.addEventListener("pointermove", move, { passive: false });
+    document.addEventListener("pointerup", end);
+    document.addEventListener("pointercancel", cancel);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", end);
+      document.removeEventListener("pointercancel", cancel);
+      document.removeEventListener("keydown", key);
+    };
+  }, [dragTask]);
   const [taskParams, setTaskParams] = useSearchParams();
   useEffect(() => {
     const id = Number(taskParams.get("task"));
@@ -239,13 +308,35 @@ export default function Projects() {
       {loading ? (
         <State loading />
       ) : view === "board" ? (
-        <div className="kanban">
+        <div
+          className={`kanban ${dragTask ? "drag-active" : ""}`}
+          ref={boardRef}
+        >
           {stages.map((stage, index) => {
             const list = filtered.filter((t) => t.stage === index),
               closed = collapsed.includes(index);
             return (
               <section
-                className={`stage ${closed ? "collapsed" : ""}`}
+                className={`stage ${closed ? "collapsed" : ""} ${dragTask && availableStages(dragTask, canReview).includes(index) ? "can-drop" : ""} ${dragOver === index ? "drag-over" : ""}`}
+                data-stage-index={index}
+                onDragOver={(e) => {
+                  if (
+                    dragTask &&
+                    availableStages(dragTask, canReview).includes(index)
+                  ) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setDragOver(index);
+                  }
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget))
+                    setDragOver(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  dropTask(dragTask, index);
+                }}
                 key={stage}
               >
                 <button
@@ -273,6 +364,11 @@ export default function Projects() {
                           onOpen={setSelected}
                           onTransition={transition}
                           canReview={canReview}
+                          busy={busy}
+                          onDragTask={setDragTask}
+                          onDragFinish={finishDrag}
+                          onTouchDrag={startTouchDrag}
+                          dragging={dragTask?.id === task.id}
                         />
                       ))}
                     </div>

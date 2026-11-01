@@ -109,3 +109,13 @@ The user clarified that clicking the bell must open a list over whichever screen
 Browser coverage now includes popup route preservation, background board/search preservation, independent scrolling/search, dismissal/focus and phone bounds, alongside the existing delivery/read-state checks.
 
 Dropdown verification: 37 browser checks passed, including the four notification interaction flows. Preview/production builds and deployment checks passed.
+
+## Card interaction and document image refinement
+
+“Another city” was interpreted as another workflow column. Board cards now support native desktop drag/drop and touch/pen movement from the Drag handle, with valid destination highlights and a Move to… select alternative. Source task ID/history/document remain unchanged. Shared target rules preserve Upcoming→Today→In Progress→Review and reviewer-only approval/rejection/rework; dropping into Reject opens the existing required-reason form. Invalid jumps do not mutate the task.
+
+Whole board and daily dashboard card surfaces open the task, including metadata/progress/background. Enter/Space opens a focused card. Interactive descendants retain their own controls and do not also open the task. Native drag suppresses the subsequent surface click.
+
+Document images in edit and page-preview mode use small thumbnails (up to 220 px box/130 px image height), opening the original in a separate native dialog on click. The viewer fits the viewport, restores focus and closes on Escape/Close without dismissing the parent task dialog. Print/PDF content retains original images. New helper: modules/taskInteraction.js; viewer: components/documents/ImagePreview.jsx. Browser tests cover native movement and reason/refresh history, touch movement, whole-card vs action clicks, thumbnail bounds and nested viewer behavior.
+
+Final card/image validation: 41 browser tests passed; reviewer target-rule test, four deployment checks, preview build and production build passed. Mobile page-overflow regression was corrected by removing a redundant absolutely positioned hidden label; move selects retain explicit accessible names.

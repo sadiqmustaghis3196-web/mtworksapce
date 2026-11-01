@@ -32,3 +32,5 @@ ModuleOverview.jsx renders the domain-specific panels defined by src/modules/ins
 The preview `/notifications` route now uses pages/notifications/Notifications.jsx instead of the generic collection screen, with a live unread badge, filters, read actions and related-record links. AppLayout displays new-item toasts and keeps the bell available on phones.
 
 Bell interaction: AppLayout mounts Notifications in compact mode inside an anchored overlay (`#notification-popover`). It preserves the current route and screen. Dashboard View all and toast actions open that overlay; standalone `/notifications` remains only as a compatible direct route.
+
+TaskCard now supports whole-surface opening, native drag and touch-handle movement. Projects owns drop targets and existing transition handling; modules/taskInteraction.js shares permitted targets. DocumentEditor uses ImagePreview.jsx for thumbnails and a separate image viewer dialog.
