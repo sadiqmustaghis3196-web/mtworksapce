@@ -378,6 +378,7 @@ export default function DailyDashboard() {
           </div>
           <DeliveryFlow
             counts={data.phaseCounts}
+            tasks={data.tasks}
             selected={phase}
             onSelect={setPhase}
             reworkCount={data.tasks.filter((t) => t.stage === 5).length}
@@ -543,7 +544,10 @@ export default function DailyDashboard() {
                 </div>
                 <div className="daily-task-grid">
                   {tasks.map((task) => (
-                    <article className="daily-task-card" key={task.id}>
+                    <article
+                      className={`daily-task-card phase-${task.reportedPhase} ${task.stage === 2 ? "task-working" : ""} ${task.dayEntries.length ? "task-updated" : ""}`}
+                      key={task.id}
+                    >
                       <div className="daily-task-top">
                         <span className="day-badge">
                           {
@@ -584,6 +588,14 @@ export default function DailyDashboard() {
                           </p>
                         </div>
                       )}
+                      {task.stage === 2 && (
+                        <div className="task-working-label">
+                          <span />
+                          {data.isToday
+                            ? "Work in progress"
+                            : "Current task in progress"}
+                        </div>
+                      )}
                       <div className="daily-task-progress">
                         <span>
                           {data.isToday
@@ -599,18 +611,30 @@ export default function DailyDashboard() {
                           value={task.reportedProgress || 0}
                           max="100"
                         />
+                      </div>
+                      <div
+                        className={`task-daily-result ${task.dayEntries.length ? "has-update" : ""}`}
+                      >
                         <div>
-                          <span
-                            className={
-                              task.dayDelta > 0 ? "positive-progress" : ""
-                            }
-                          >
-                            Today {delta(task.dayDelta)}
-                          </span>
+                          <small>
+                            {data.isToday
+                              ? "TODAY’S PROGRESS"
+                              : "DAY’S PROGRESS"}
+                          </small>
+                          <strong>{delta(task.dayDelta)}</strong>
                           <span>
-                            <Clock3 size={11} />
-                            {duration(task.dayMinutes)}
+                            {task.dayEntries.length
+                              ? `${task.dayEntries.length} recorded update${task.dayEntries.length === 1 ? "" : "s"}`
+                              : "No daily update yet"}
                           </span>
+                        </div>
+                        <div>
+                          <small>TIME LOGGED</small>
+                          <strong>
+                            <Clock3 size={14} />
+                            {duration(task.dayMinutes)}
+                          </strong>
+                          <span>Actual reported time</span>
                         </div>
                       </div>
                       {task.dueDate && (

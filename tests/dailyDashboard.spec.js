@@ -8,11 +8,9 @@ async function login(page) {
   await expect(page.locator(".delivery-flow")).toBeVisible();
 }
 const taskCard = (page, id) =>
-  page
-    .locator(".daily-task-card")
-    .filter({
-      has: page.getByRole("button", { name: new RegExp(`^#${id} `) }),
-    });
+  page.locator(".daily-task-card").filter({
+    has: page.getByRole("button", { name: new RegExp(`^#${id} `) }),
+  });
 test.beforeEach(async ({ page }) => login(page));
 test("dashboard is the new home and old sample completions are not counted as done today", async ({
   page,
@@ -65,6 +63,8 @@ test("employee records daily work, testing phase, time and blocker; admin sees t
   await expect(card).toContainText("80%");
   await expect(card).toContainText("+20 pp");
   await expect(card).toContainText("0h 45m");
+  await expect(card.locator(".task-daily-result")).toHaveClass(/has-update/);
+  await card.screenshot({ path: "/tmp/mt-working-task-progress.png" });
   await expect(page.locator(".daily-log-entry")).toContainText(
     "Completed responsive states",
   );
@@ -200,4 +200,66 @@ test("all admin-to-employee dashboard templates load and remain responsive", asy
     path: "/tmp/mt-daily-dashboard-mobile.png",
     fullPage: true,
   });
+});
+
+test("connected diagram highlights actual work, filters stages and respects reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  const build = page.locator(".delivery-step.phase-development");
+  await expect(build).toHaveClass(/has-work/);
+  expect(
+    await build.evaluate((el) => getComputedStyle(el).borderTopStyle),
+  ).toBe("double");
+  await expect(
+    taskCard(page, 426).locator(".task-working-label"),
+  ).toContainText("Work in progress");
+  await expect(taskCard(page, 426).locator(".task-daily-result")).toContainText(
+    "No daily update yet",
+  );
+  await expect(
+    taskCard(page, 426).locator(".task-daily-result"),
+  ).not.toHaveClass(/has-update/);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const route = page.locator(".diagram-route.route-moving").first();
+  expect(await route.evaluate((el) => getComputedStyle(el).animationName)).toBe(
+    "workflow-travel",
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await route.evaluate((el) => getComputedStyle(el).animationName)).toBe(
+    "none",
+  );
+  const testing = await page
+    .locator(".delivery-step.phase-testing")
+    .boundingBox();
+  const quality = await page
+    .locator(".delivery-step.phase-quality")
+    .boundingBox();
+  const done = await page.locator(".delivery-step.phase-done").boundingBox();
+  expect(quality.y).toBeGreaterThan(testing.y);
+  expect(done.x).toBeLessThan(quality.x);
+  await build.click();
+  await expect(build).toHaveAttribute("aria-pressed", "true");
+  await expect(taskCard(page, 418)).toHaveCount(0);
+  await expect(taskCard(page, 426)).toBeVisible();
+  await page
+    .locator(".diagram-panel")
+    .screenshot({ path: "/tmp/mt-workflow-diagram-desktop.png" });
+  await build.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const scroll = page.locator(".delivery-flow-scroll");
+  await scroll.evaluate((el) => (el.scrollLeft = el.scrollWidth));
+  await page.locator(".delivery-step.phase-quality").click();
+  await expect(page.locator(".delivery-step.phase-quality")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .locator(".diagram-panel")
+    .screenshot({ path: "/tmp/mt-workflow-diagram-mobile.png" });
 });

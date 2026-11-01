@@ -201,155 +201,6 @@
   font-size: 9px;
   color: #788db2;
 }
-.delivery-flow-scroll {
-  overflow-x: auto;
-  padding: 0 18px 6px;
-  scrollbar-width: thin;
-}
-.delivery-flow {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  min-width: 760px;
-  gap: 3px;
-}
-.delivery-step {
-  position: relative;
-  min-height: 139px;
-  padding: 16px 23px 17px 19px;
-  text-align: left;
-  color: #e2daf9;
-  background: #4f31825e;
-  clip-path: polygon(
-    0 0,
-    calc(100% - 17px) 0,
-    100% 50%,
-    calc(100% - 17px) 100%,
-    0 100%,
-    13px 50%
-  );
-  border: 0;
-  border-bottom: 2px solid #9761d044;
-  transition: filter 0.15s;
-}
-.delivery-step:first-child {
-  clip-path: polygon(
-    0 0,
-    calc(100% - 17px) 0,
-    100% 50%,
-    calc(100% - 17px) 100%,
-    0 100%
-  );
-  border-radius: 6px 0 0 6px;
-}
-.delivery-step:hover {
-  filter: brightness(1.25);
-}
-.delivery-step.selected {
-  filter: brightness(1.4);
-  box-shadow: inset 0 0 0 2px #c6b5ee66;
-}
-.delivery-step-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.delivery-step-top > i {
-  display: grid;
-  place-items: center;
-  width: 29px;
-  height: 29px;
-  border-radius: 8px;
-  background: #ffffff0d;
-  color: #bd9bea;
-}
-.delivery-step-top > b {
-  font-size: 23px;
-  font-weight: 650;
-  color: #d4bff2;
-  line-height: 1;
-}
-.delivery-step > strong {
-  font-size: 12px;
-  display: block;
-  line-height: 1.5;
-}
-.delivery-step > small {
-  display: block;
-  font-size: 8px;
-  line-height: 1.6;
-  margin-top: 6px;
-  color: #ac99c9;
-  max-width: 105px;
-}
-.delivery-step-number {
-  position: absolute;
-  bottom: 9px;
-  right: 24px;
-  font-size: 9px;
-  opacity: 0.2;
-  font-weight: 700;
-}
-.delivery-step.phase-development {
-  background: #16476066;
-  border-color: #338fa64d;
-  color: #bfe6f2;
-}
-.phase-development .delivery-step-top > i,
-.phase-development .delivery-step-top > b {
-  color: #7fd3e7;
-}
-.phase-development > small {
-  color: #86b2c6;
-}
-.delivery-step.phase-testing {
-  background: #164d4460;
-  border-color: #36b08c44;
-  color: #b6eadc;
-}
-.phase-testing .delivery-step-top > i,
-.phase-testing .delivery-step-top > b {
-  color: #7dd9bb;
-}
-.phase-testing > small {
-  color: #87b9a9;
-}
-.delivery-step.phase-quality {
-  background: #54441c50;
-  border-color: #bd944344;
-  color: #e9d8a8;
-}
-.phase-quality .delivery-step-top > i,
-.phase-quality .delivery-step-top > b {
-  color: #d4bc7d;
-}
-.phase-quality > small {
-  color: #b7a575;
-}
-.delivery-step.phase-review {
-  background: #62402a55;
-  border-color: #c1825144;
-  color: #efd3b4;
-}
-.phase-review .delivery-step-top > i,
-.phase-review .delivery-step-top > b {
-  color: #dfaf7f;
-}
-.phase-review > small {
-  color: #bd9a7b;
-}
-.delivery-step.phase-done {
-  background: #154c4c66;
-  border-color: #26a29444;
-  color: #b9e5de;
-}
-.phase-done .delivery-step-top > i,
-.phase-done .delivery-step-top > b {
-  color: #66d3c2;
-}
-.phase-done > small {
-  color: #83bcb2;
-}
 .delivery-flow-panel > footer {
   display: flex;
   align-items: center;
@@ -1287,4 +1138,558 @@
   }
 }
 
-.badge.work-phase{background:#297d8650;color:#a5ddd9;border:1px solid #7cc8c424;font-size:8px}
+.badge.work-phase {
+  background: #297d8650;
+  color: #a5ddd9;
+  border: 1px solid #7cc8c424;
+  font-size: 8px;
+}
+
+/* Connected delivery diagram: stage occupancy and reported work are distinct. */
+.diagram-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 0 22px 18px;
+  color: #b6c5df;
+  font-size: 10px;
+}
+.diagram-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.diagram-legend i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.legend-live {
+  border: 3px double #51ddff;
+}
+.legend-reported {
+  background: #35dba2;
+}
+.legend-waiting {
+  background: #ffbc63;
+}
+.diagram-legend > small {
+  margin-left: auto;
+  color: #90a6ca;
+}
+.diagram-panel .delivery-flow-scroll {
+  overflow-x: auto;
+  padding: 0 18px 10px;
+  scrollbar-width: thin;
+}
+.delivery-diagram {
+  min-width: 880px;
+  height: 560px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 40%, #253c6044, transparent 65%);
+}
+.diagram-inputs {
+  position: absolute;
+  top: 0;
+  left: 4%;
+  right: 4%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7%;
+}
+.diagram-inputs > div {
+  justify-self: center;
+  width: 85%;
+  max-width: 230px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 13px 16px;
+  background: #26395670;
+  border: 1px solid #92a9dd40;
+  border-radius: 16px;
+  box-shadow: 0 0 0 4px #6382b511;
+  color: #b2cafa;
+}
+.diagram-inputs small {
+  grid-column: 2;
+  color: #a2b6d4;
+  font-size: 10px;
+}
+.diagram-inputs strong {
+  font-size: 12px;
+}
+.diagram-inputs svg {
+  grid-row: span 2;
+}
+.diagram-connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.diagram-connectors > path {
+  fill: none;
+  stroke: #6884ad;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.diagram-connectors > .diagram-input-line {
+  stroke: #829dce;
+  stroke-dasharray: 4 6;
+  opacity: 0.6;
+}
+.diagram-connectors > .diagram-route {
+  stroke: #50d0ec;
+  stroke-width: 2.5;
+}
+.diagram-connectors > .diagram-rework {
+  stroke: #f1ad69;
+  stroke-dasharray: 6 6;
+}
+.diagram-connectors > .route-moving {
+  stroke-dasharray: 7 7;
+  animation: workflow-travel 1.5s linear infinite;
+}
+@keyframes workflow-travel {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+.diagram-panel .delivery-flow {
+  position: absolute;
+  inset: 130px 4% 30px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: 160px 160px;
+  column-gap: 7.6%;
+  row-gap: 80px;
+}
+.diagram-panel .delivery-step {
+  --phase: #b892ff;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 17px 19px;
+  border: 1px solid color-mix(in srgb, var(--phase) 48%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--phase) 18%, #142036),
+    #152138
+  );
+  text-align: left;
+  color: #edf4ff;
+  clip-path: none;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+.diagram-panel .delivery-step:nth-child(4) {
+  grid-column: 3;
+  grid-row: 2;
+}
+.diagram-panel .delivery-step:nth-child(5) {
+  grid-column: 2;
+  grid-row: 2;
+}
+.diagram-panel .delivery-step:nth-child(6) {
+  grid-column: 1;
+  grid-row: 2;
+}
+.diagram-panel .phase-development,
+.daily-task-card.phase-development {
+  --phase: #42d9ff;
+}
+.diagram-panel .phase-testing,
+.daily-task-card.phase-testing {
+  --phase: #b999ff;
+}
+.diagram-panel .phase-quality,
+.daily-task-card.phase-quality {
+  --phase: #ff84a7;
+}
+.diagram-panel .phase-review,
+.daily-task-card.phase-review {
+  --phase: #ffc368;
+}
+.diagram-panel .phase-done,
+.daily-task-card.phase-done {
+  --phase: #45e6ac;
+}
+.diagram-panel .delivery-step.has-work {
+  border: 4px double var(--phase);
+  padding: 14px 16px;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--phase) 9%, transparent),
+    0 0 26px color-mix(in srgb, var(--phase) 12%, transparent);
+}
+.diagram-panel .delivery-step.awaiting-review {
+  border: 4px double var(--phase);
+  padding: 14px 16px;
+}
+.diagram-panel .delivery-step.selected {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--phase) 36%, #142036),
+    #152138
+  );
+  outline: 2px solid #f2f5ff;
+  outline-offset: 5px;
+}
+.diagram-panel .delivery-step:hover {
+  transform: translateY(-2px);
+}
+.diagram-panel .delivery-step:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 5px;
+}
+.diagram-panel .delivery-step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.diagram-panel .delivery-step-top i {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: color-mix(in srgb, var(--phase) 15%, transparent);
+  border-radius: 9px;
+  color: var(--phase);
+}
+.diagram-panel .delivery-step-top b {
+  color: var(--phase);
+  font-size: 28px;
+  line-height: 1;
+}
+.diagram-panel .delivery-step > strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.diagram-stage-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #c2cce0;
+  margin-top: 6px;
+}
+.diagram-stage-status i {
+  width: 6px;
+  height: 6px;
+  background: var(--phase);
+  border-radius: 50%;
+}
+.is-current-day .has-work .diagram-stage-status i,
+.task-working-label > span {
+  animation: workflow-beacon 2s ease-out infinite;
+}
+@keyframes workflow-beacon {
+  0% {
+    box-shadow: 0 0 0 0 #42d9ff66;
+  }
+  100% {
+    box-shadow: 0 0 0 6px #42d9ff00;
+  }
+}
+.diagram-stage-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 9px;
+  color: #9eb1d0;
+}
+.diagram-stage-stats > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.has-reports .diagram-stage-stats > span:first-child {
+  color: #5de7b5;
+}
+.diagram-panel .delivery-step-number {
+  position: absolute;
+  top: -12px;
+  left: 15px;
+  bottom: auto;
+  right: auto;
+  border: 1px solid var(--phase);
+  border-radius: 20px;
+  padding: 2px 7px;
+  background: #142038;
+  color: var(--phase);
+  font-size: 9px;
+  font-weight: 700;
+}
+.diagram-turn-label {
+  position: absolute;
+  top: 305px;
+  right: 1.8%;
+  color: #81cddd;
+  font-size: 9px;
+}
+.diagram-rework-label {
+  position: absolute;
+  top: 309px;
+  left: 51%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffc995;
+  font-size: 10px;
+  background: #162239;
+  padding: 6px 10px;
+  border-radius: 20px;
+}
+.diagram-finish {
+  position: absolute;
+  bottom: 3px;
+  left: 5%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #73dfb7;
+  font-size: 10px;
+}
+.daily-task-card {
+  --phase: #b892ff;
+}
+.daily-task-card.task-working {
+  border: 4px double var(--phase);
+  padding: 12px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--phase) 7%, transparent);
+}
+.task-working-label {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin: 14px 0 12px;
+  font-size: 10px;
+  color: var(--phase);
+  font-weight: 600;
+}
+.task-working-label > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phase);
+}
+.task-daily-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0 14px;
+  border: 1px solid #8596b43d;
+  border-radius: 9px;
+  padding: 13px;
+  background: #0d192b66;
+}
+.task-daily-result.has-update {
+  border: 4px double #47dca7;
+  padding: 10px;
+  background: #27c9980c;
+  box-shadow: 0 0 0 3px #35db9c0b;
+}
+.task-daily-result > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.task-daily-result > div + div {
+  border-left: 1px solid #99b2c926;
+  padding-left: 12px;
+}
+.task-daily-result small {
+  color: #a5b8d4;
+  letter-spacing: 1px;
+  font-size: 8px;
+  font-weight: 600;
+}
+.task-daily-result strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #bdcce3;
+  font-size: 19px;
+  line-height: 1.3;
+}
+.task-daily-result.has-update strong {
+  color: #60e5b4;
+}
+.task-daily-result span {
+  color: #96adcc;
+  font-size: 9px;
+}
+.light .diagram-panel .delivery-step {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--phase) 20%, #fff),
+    #f5f8ff
+  );
+  color: #182b4c;
+}
+.light .diagram-panel .delivery-step.selected {
+  outline-color: #293b65;
+}
+.light .diagram-panel .delivery-step-number {
+  background: #fff;
+  color: #35466a;
+}
+.light .diagram-inputs > div {
+  background: #f0f5ff;
+  color: #364d78;
+}
+.light .diagram-inputs small,
+.light .diagram-stage-status,
+.light .diagram-stage-stats,
+.light .diagram-legend,
+.light .diagram-legend > small {
+  color: #4c6182;
+}
+.light .diagram-rework-label {
+  background: #fff5e9;
+  color: #8c480f;
+}
+.light .task-daily-result {
+  background: #e9effa;
+}
+.light .task-daily-result.has-update {
+  background: #e8fbf1;
+}
+.light .task-daily-result small,
+.light .task-daily-result span {
+  color: #4a627e;
+}
+.light .task-daily-result strong {
+  color: #284363;
+}
+.light .task-daily-result.has-update strong {
+  color: #087c55;
+}
+.light .task-working-label {
+  color: #225a80;
+}
+@media (max-width: 600px) {
+  .diagram-legend {
+    padding: 0 16px 15px;
+    gap: 10px;
+    font-size: 9px;
+  }
+  .diagram-legend > small {
+    width: 100%;
+    margin: 0;
+  }
+  .diagram-panel .delivery-flow-scroll {
+    padding: 5px 15px 10px;
+  }
+  .task-daily-result strong {
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diagram-connectors > .route-moving,
+  .is-current-day .has-work .diagram-stage-status i,
+  .task-working-label > span {
+    animation: none;
+  }
+  .diagram-panel .delivery-step {
+    transition: none;
+  }
+}
+/* On phones the same six stages read from top to bottom, without cropping. */
+@media (max-width: 600px) {
+  .diagram-panel .delivery-flow-scroll {
+    overflow: visible;
+  }
+  .delivery-diagram {
+    min-width: 0;
+    height: auto;
+  }
+  .diagram-inputs {
+    position: static;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin: 4px 8px 25px;
+  }
+  .diagram-inputs > div {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    grid-template-columns: 24px 1fr;
+  }
+  .diagram-inputs small {
+    font-size: 9px;
+  }
+  .diagram-connectors {
+    display: none;
+  }
+  .diagram-panel .delivery-flow {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 0 8px;
+  }
+  .diagram-panel .delivery-step {
+    width: 100%;
+    min-height: 158px;
+  }
+  .diagram-panel .delivery-step:hover {
+    transform: none;
+  }
+  .diagram-panel .delivery-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -33px;
+    height: 29px;
+    width: 2px;
+    background: #50d0ec;
+  }
+  .diagram-panel .delivery-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(50% - 4px);
+    bottom: -30px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #50d0ec;
+    border-bottom: 2px solid #50d0ec;
+    transform: rotate(45deg);
+  }
+  .diagram-panel .delivery-step.has-work::before {
+    bottom: -36px;
+  }
+  .diagram-panel .delivery-step.has-work::after {
+    bottom: -33px;
+  }
+  .diagram-panel .delivery-step.awaiting-review::before {
+    bottom: -36px;
+  }
+  .diagram-panel .delivery-step.awaiting-review::after {
+    bottom: -33px;
+  }
+  .diagram-rework-label,
+  .diagram-turn-label {
+    display: none;
+  }
+  .diagram-finish {
+    position: static;
+    margin: 14px 8px 0;
+  }
+}

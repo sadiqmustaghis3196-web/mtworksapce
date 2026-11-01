@@ -75,3 +75,9 @@ Six delivery chevrons show Plan & assign → Build/work → Testing → Quality 
 Deadline watch and configurable in-app reminders cover overdue, today, tomorrow, reviews and a local-time daily digest. Reminder generation is deduplicated and runs while the dashboard is open. No email, push or background scheduler is connected. All data remains browser-local in the current UI preview.
 
 New files: src/modules/dailyWork.js; src/pages/dashboard/{DailyDashboard,DailyForms,DeliveryFlow}.jsx; src/styles/dailyDashboard.css. Local adapter routes are documented in API_ENDPOINTS.md. Validation: 14 daily rule tests and 30 browser tests passed, including all role templates, seven viewport sizes, actual employee reporting visible to the admin lens, goal/preferences persistence and reminder deduplication. See lessons/05-daily-dashboard.md.
+
+## Animated delivery diagram refinement
+
+Replaced the single chevron strip with a connected two-row workflow diagram, input panels, directional SVG connectors and a dotted rework loop. Active stage occupancy has a colored double border and status text; counts and daily update/time totals derive from the scoped daily model. Dashed paths and working indicators animate only on the current day and honor reduced motion. Phone layout shows all six stages vertically with connectors.
+
+Working task cards have a phase-colored double border. A separate two-column daily result box shows reported progress change and actual time; it becomes green with a double border only after an update exists. Existing overall progress is still separate. Added browser assertions for actual report highlighting, stage filtering, diagram layout, motion/reduced-motion and phone overflow. The original 30 browser checks passed; all six updated dashboard checks also passed. No backend or CI/CD integration was added.
