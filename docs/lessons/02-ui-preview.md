@@ -13,4 +13,4 @@ Login: `admin@mtnexus.test` / `NexusUI@2026!`. Yeh public UI testing credentials
 
 `npm run dev:preview` se design test karein. Card edit ya review/approve karne ke baad refresh karein: changes isi browser mein rehte hain. Reset sample data se original cards wapas aate hain. Doosre browser mein yeh data share nahi hota.
 
-`npm run build` asli API mode hai. `npm run build:preview` UI preview hai. Dono ko database integration ka proof na samjhein.
+`npm run build:production` asli API mode hai. Normal `npm run build` bhi ab UI preview hai. `npm run build:preview` UI preview hai. Dono ko database integration ka proof na samjhein.

@@ -20,7 +20,7 @@ test("real production configuration retains API routing and Prisma generation", 
   assert.equal(production.buildCommand, "npm run build:vercel");
   assert.match(
     pkg.scripts["build:vercel"],
-    /prisma:generate --prefix server.*npm run build/,
+    /prisma:generate --prefix server.*npm run build:production/,
   );
   assert.ok(existsSync(new URL("deployment/production-api.js", root)));
   assert.equal(
@@ -37,4 +37,16 @@ test("real backend never imports the frontend preview login", () => {
       readFileSync(new URL(file, root), "utf8"),
       /NexusUI@2026!|admin@mtnexus\.test|previewApi/,
     );
+});
+
+test("ordinary npm build cannot accidentally select backend login during the UI phase", () => {
+  assert.equal(pkg.scripts.build, "VITE_UI_PREVIEW=true vite build");
+  assert.equal(
+    pkg.scripts["build:production"],
+    "VITE_UI_PREVIEW=false vite build",
+  );
+  assert.match(
+    readFileSync(new URL("src/preview/config.js", root), "utf8"),
+    /VITE_UI_PREVIEW !== "false"/,
+  );
 });

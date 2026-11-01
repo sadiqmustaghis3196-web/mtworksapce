@@ -13,4 +13,4 @@ Active mode is now the user-requested database-free UI preview. Login, dashboard
 
 Shell: src/layouts/AppLayout.jsx. Shared tables/dialogs/states: src/components/common/UI.jsx. Theme and responsive breakpoints: src/styles/app.css. API transport: src/services/api.js. Session identity: src/context/AuthContext.jsx.
 
-The calendar currently groups tasks by due date; a month-grid calendar and proportional date-axis timeline remain outstanding. Preview samples live in src/preview/data.js and are used only when VITE_UI_PREVIEW=true. Normal API builds exclude the preview credentials and sample-data adapter. The real-API UI fixture tests remain in tests/workspace.spec.js.
+The calendar currently groups tasks by due date; a month-grid calendar and proportional date-axis timeline remain outstanding. Preview samples live in src/preview/data.js and are used only when VITE_UI_PREVIEW=true. Explicit build:production builds exclude the preview credentials and sample-data adapter. The real-API UI fixture tests remain in tests/workspace.spec.js.

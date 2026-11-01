@@ -13,7 +13,7 @@ Database work is deferred at the user's request. The default Vercel deployment i
 
 Run `npm ci` then `npm run dev:preview` locally. Vercel uses `npm run build:preview` and the root directory. No database, Prisma engines or environment credentials are needed for this mode. The UI is visibly labeled UI PREVIEW. Changes stay in this browser only; reset them with Reset sample data. This is not real authentication or a completed ERP.
 
-The real backend is unchanged by the preview login. `npm run build` uses the real API; `npm run prepare:production` restores the full-stack Vercel config/adapter for the later database phase. See [deployment instructions](docs/VERCEL_DEPLOYMENT.md).
+The real backend is unchanged by the preview login. `npm run build:production` uses the real API; `npm run prepare:production` restores the full-stack Vercel config/adapter for the later database phase. See [deployment instructions](docs/VERCEL_DEPLOYMENT.md).
 
 ## Real backend requirements — later phase
 
@@ -52,7 +52,7 @@ Frontend port 8000, API port 5000. Production requires HTTPS, NODE_ENV=productio
 
 - `npm run build`: React production bundle.
 - `npm test`: workflow, CSRF, permission and scope unit tests.
-- `npm run test:ui`: start Vite on port 8001 first (`npm run dev -- --port 8001`); Chromium UI tests use API fixtures and **do not validate database persistence**. Playwright config uses `/usr/bin/chromium` in this cloud; select an installed browser on other machines.
+- `npm run test:ui`: start Vite on port 8001 first (`npm run dev:production -- --port 8001`); Chromium UI tests use API fixtures and **do not validate database persistence**. Playwright config uses `/usr/bin/chromium` in this cloud; select an installed browser on other machines.
 - `cd server && npm run test:integration`: new DB-backed auth/task suite, **not run yet**. Use only a disposable development database.
 - Historical server tests expect removed fixed accounts/data and JWT bearer responses. They are preserved as legacy test references, not evidence for the new session architecture.
 

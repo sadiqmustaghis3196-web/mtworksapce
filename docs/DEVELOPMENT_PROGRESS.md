@@ -4,7 +4,7 @@ The latest user instruction explicitly requests temporary credentials in fronten
 
 Current default Vercel deployment: root static Vite UI preview (`npm run build:preview`), no API function, no server install, no Prisma or DB prerequisites. Test login: admin@mtnexus.test / NexusUI@2026! (public preview credentials, not a real user/account). Sample data and preview API are isolated in src/preview/; real server authentication is not modified. Preview browser session and edits use separate local/session storage keys. Visible UI PREVIEW notice and reset controls distinguish it from the real backend.
 
-Later full-stack configuration is retained in deployment/vercel.production.json and deployment/production-api.js. npm run prepare:production restores the original deployment files. Normal npm run build compiles real API mode. Never treat preview workflow checks as database or authorization integration tests. Do not provision a real account or ask the user for database setup as a prerequisite to UI design work now.
+Later full-stack configuration is retained in deployment/vercel.production.json and deployment/production-api.js. npm run prepare:production restores the original deployment files. Explicit npm run build:production compiles real API mode; normal npm run build now defaults to preview as well. Never treat preview workflow checks as database or authorization integration tests. Do not provision a real account or ask the user for database setup as a prerequisite to UI design work now.
 
 Full task history and outstanding ERP work follow below.
 
@@ -110,3 +110,10 @@ Vercel build now runs provision-admin --if-needed after Prisma generation/fronte
 - 3 deployment configuration tests passed, including static-only default deployment and isolation from backend authentication.
 - Main app modules beyond current dashboard/board/profile shell remain incomplete. Preview does not finish the original full ERP specification.
 - Vercel must redeploy the new commit with root vercel.json settings. Default build now build:preview, not the old build:vercel override. Actual hosted redeployment has not been observed.
+
+
+## UI login build-mode correction
+
+User screenshot showed the real API login footer and no UI PREVIEW label, with a server/origin error. This indicates that a non-preview/stale build was being served, although hosted logs/settings are unavailable. Normal npm run build and npm run dev now explicitly enable UI preview; raw Vite defaults to preview unless VITE_UI_PREVIEW=false. The database-backed path requires explicit build:production/dev:production, and the full-stack Vercel build now calls build:production. No backend CORS policy was broadened. Recheck the built default preview end-to-end and confirm real production bundles still exclude public preview credentials.
+
+Default npm run build now verified by the same 2 Chromium preview tests: both passed, including zero backend requests. Explicit npm run build:production also passed and its JavaScript excludes both public preview credentials; rebuilt the default preview afterward. Four deployment-configuration tests passed. Hosted Vercel redeployment remains outside this session.

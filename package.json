@@ -4,17 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
+    "dev": "VITE_UI_PREVIEW=true vite --host 0.0.0.0",
+    "build": "VITE_UI_PREVIEW=true vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test --test-reporter=spec server/test/unit/*.test.js",
     "test:ui": "playwright test",
-    "build:vercel": "npm run prisma:generate --prefix server && npm run build && npm run provision-admin --prefix server -- --if-needed",
+    "build:vercel": "npm run prisma:generate --prefix server && npm run build:production && npm run provision-admin --prefix server -- --if-needed",
     "test:deployment": "node --test tests/deployment.test.js",
     "dev:preview": "VITE_UI_PREVIEW=true vite --host 0.0.0.0",
     "build:preview": "VITE_UI_PREVIEW=true vite build",
     "prepare:production": "node scripts/prepare-production.mjs",
-    "test:preview": "playwright test --config playwright.preview.config.js"
+    "test:preview": "playwright test --config playwright.preview.config.js",
+    "build:production": "VITE_UI_PREVIEW=false vite build",
+    "dev:production": "VITE_UI_PREVIEW=false vite --host 0.0.0.0"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

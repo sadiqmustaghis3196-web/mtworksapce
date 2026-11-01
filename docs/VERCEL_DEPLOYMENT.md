@@ -24,7 +24,7 @@ For local design work use `npm run dev:preview`. For the built-preview browser t
 
 ## Restore the database-backed application later
 
-Normal `npm run build` still compiles the real API-backed application without the preview login. To switch Vercel back to the full-stack deployment, run `npm run prepare:production`. This restores `api/index.js` and root `vercel.json` from `deployment/`, then review/commit those changes before deploying. The command never sets credentials or touches a database. Follow the requirements below for the database-backed phase.
+Normal `npm run build` now compiles the UI preview too, so a Vercel build override cannot accidentally require the backend. Use `npm run build:production` explicitly for the real API-backed application without the preview login. To switch Vercel back to the full-stack deployment, run `npm run prepare:production`. This restores `api/index.js` and root `vercel.json` from `deployment/`, then review/commit those changes before deploying. The command never sets credentials or touches a database. Follow the requirements below for the database-backed phase.
 
 ---
 
