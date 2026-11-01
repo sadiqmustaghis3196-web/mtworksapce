@@ -4,7 +4,18 @@ React/Vite frontend and Express/PostgreSQL/Prisma ERP rebuild. **Implementation 
 
 See [progress and resume checkpoint](docs/DEVELOPMENT_PROGRESS.md), [implementation map](docs/PROJECT_STRUCTURE.md), [screens](docs/SCREEN_FILE_MAP.md), [API reference](docs/API_ENDPOINTS.md), and [Roman Urdu lesson](docs/lessons/01-foundation.md).
 
-## Requirements
+## UI design preview — current Vercel mode
+
+Database work is deferred at the user's request. The default Vercel deployment is now a static UI preview with sample data and a public code-based test login:
+
+- Email: `admin@mtnexus.test`
+- Password: `NexusUI@2026!`
+
+Run `npm ci` then `npm run dev:preview` locally. Vercel uses `npm run build:preview` and the root directory. No database, Prisma engines or environment credentials are needed for this mode. The UI is visibly labeled UI PREVIEW. Changes stay in this browser only; reset them with Reset sample data. This is not real authentication or a completed ERP.
+
+The real backend is unchanged by the preview login. `npm run build` uses the real API; `npm run prepare:production` restores the full-stack Vercel config/adapter for the later database phase. See [deployment instructions](docs/VERCEL_DEPLOYMENT.md).
+
+## Real backend requirements — later phase
 
 Node 22.12+; npm; PostgreSQL 16. Prisma requires HTTPS access to `binaries.prisma.sh` with checksum and TLS verification enabled.
 
@@ -49,4 +60,4 @@ Frontend port 8000, API port 5000. Production requires HTTPS, NODE_ENV=productio
 
 ## Vercel
 
-See [Vercel deployment instructions](docs/VERCEL_DEPLOYMENT.md). Deploy from the repository root using root vercel.json, with a hosted PostgreSQL DATABASE_URL and exact HTTPS APP_ORIGINS. The build explicitly generates Prisma before bundling. Database migration/provisioning and real-deployment checks remain required; a frontend build alone does not establish deployment readiness.
+See [Vercel deployment instructions](docs/VERCEL_DEPLOYMENT.md). Current default: static UI preview. Hosted PostgreSQL, Prisma generation and account provisioning apply only after restoring the full-stack configuration for the later database phase.

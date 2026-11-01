@@ -1,4 +1,7 @@
+import { isPreview } from "../preview/config";
 export async function api(path, options = {}) {
+  if (isPreview)
+    return (await import("../preview/api")).previewApi(path, options);
   const response = await fetch(`/api${path}`, {
     credentials: "include",
     ...options,

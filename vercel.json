@@ -1,17 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm ci --include=dev && npm ci --include=dev --prefix server",
-  "buildCommand": "npm run build:vercel",
+  "installCommand": "npm ci --include=dev",
+  "buildCommand": "npm run build:preview",
   "outputDirectory": "dist",
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "server/node_modules/.prisma/client/**",
-      "maxDuration": 30
-    }
-  },
   "routes": [
-    { "src": "/api(?:/.*)?", "dest": "/api/index.js" },
     { "handle": "filesystem" },
     { "src": "/.*", "dest": "/index.html" }
   ]

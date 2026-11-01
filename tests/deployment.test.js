@@ -1,68 +1,40 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-const config = JSON.parse(
-  readFileSync(new URL("../vercel.json", import.meta.url)),
+import { readFileSync, existsSync } from "node:fs";
+const root = new URL("../", import.meta.url);
+const active = JSON.parse(readFileSync(new URL("vercel.json", root)));
+const production = JSON.parse(
+  readFileSync(new URL("deployment/vercel.production.json", root)),
 );
-function route(path, files = new Set()) {
-  for (const rule of config.routes) {
-    if (rule.handle === "filesystem") {
-      if (files.has(path)) return path;
-      continue;
-    }
-    if (new RegExp(`^(?:${rule.src})$`).test(path)) return rule.dest;
-  }
-}
-test("API paths reach the function instead of the React HTML fallback", () => {
-  for (const path of [
-    "/api",
-    "/api/health",
-    "/api/auth/login",
-    "/api/tasks/426/transition",
-  ])
-    assert.equal(route(path), "/api/index.js");
+const pkg = JSON.parse(readFileSync(new URL("package.json", root)));
+test("default Vercel deployment builds only the database-free UI preview", () => {
+  assert.equal(active.buildCommand, "npm run build:preview");
+  assert.equal(active.installCommand, "npm ci --include=dev");
+  assert.equal(active.functions, undefined);
+  assert.equal(existsSync(new URL("api/index.js", root)), false);
+  assert.match(pkg.scripts["build:preview"], /VITE_UI_PREVIEW=true vite build/);
+  assert.equal(active.routes.at(-1).dest, "/index.html");
 });
-test("React deep links fall back to index while built assets stay static", () => {
-  for (const path of ["/", "/login", "/projects/project-1/board"])
-    assert.equal(route(path), "/index.html");
-  assert.equal(
-    route("/assets/app.js", new Set(["/assets/app.js"])),
-    "/assets/app.js",
-  );
-});
-test("Vercel build generates the server Prisma client and includes its engines", () => {
-  const pkg = JSON.parse(
-    readFileSync(new URL("../package.json", import.meta.url)),
-  );
+test("real production configuration retains API routing and Prisma generation", () => {
+  assert.equal(production.routes[0].dest, "/api/index.js");
+  assert.equal(production.buildCommand, "npm run build:vercel");
   assert.match(
     pkg.scripts["build:vercel"],
     /prisma:generate --prefix server.*npm run build/,
   );
-  assert.match(config.installCommand, /npm ci --include=dev --prefix server/);
-  assert.equal(config.outputDirectory, "dist");
+  assert.ok(existsSync(new URL("deployment/production-api.js", root)));
   assert.equal(
-    config.functions["api/index.js"].includeFiles,
+    production.functions["api/index.js"].includeFiles,
     "server/node_modules/.prisma/client/**",
   );
 });
-
-test("Prisma includes the Vercel Linux/OpenSSL runtime target", () => {
-  const schema = readFileSync(
-    new URL("../server/prisma/schema.prisma", import.meta.url),
-    "utf8",
-  );
-  assert.match(
-    schema,
-    /binaryTargets\s*=\s*\["native", "rhel-openssl-3\.0\.x"\]/,
-  );
-});
-
-test("Vercel provisioning is opt-in and runs after a successful frontend build", () => {
-  const pkg = JSON.parse(
-    readFileSync(new URL("../package.json", import.meta.url)),
-  );
-  assert.match(
-    pkg.scripts["build:vercel"],
-    /npm run build && npm run provision-admin --prefix server -- --if-needed$/,
-  );
+test("real backend never imports the frontend preview login", () => {
+  for (const file of [
+    "server/src/routes/auth.js",
+    "server/src/middleware/auth.js",
+  ])
+    assert.doesNotMatch(
+      readFileSync(new URL(file, root), "utf8"),
+      /NexusUI@2026!|admin@mtnexus\.test|previewApi/,
+    );
 });

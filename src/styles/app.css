@@ -1479,3 +1479,71 @@ td .link {
     left: 225px;
   }
 }
+
+.preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #322253;
+  border-bottom: 1px solid #a88aff44;
+  font-size: 11px;
+  color: #d3c7ef;
+}
+.preview-banner strong {
+  color: #8ef2ee;
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-right: 10px;
+}
+.preview-banner button {
+  background: #ffffff12;
+  padding: 7px 10px;
+  border: 1px solid #ffffff20;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 10px;
+}
+.preview-login {
+  background: #9a70ff12;
+  border: 1px solid #a383f944;
+  border-radius: 8px;
+  padding: 13px;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+.preview-login strong {
+  color: #a4f0e8;
+  font-size: 11px;
+}
+.preview-login p {
+  margin: 9px 0;
+}
+.preview-login code {
+  color: #e5dcff;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.preview-login small {
+  font-size: 10px;
+}
+@media (max-width: 767px) {
+  .preview-banner {
+    padding: 10px 12px;
+    font-size: 9px;
+  }
+  .preview-banner span {
+    line-height: 1.7;
+  }
+  .preview-banner strong {
+    display: block;
+  }
+  .preview-banner button {
+    font-size: 9px;
+    padding: 8px;
+  }
+  .preview-login {
+    padding: 11px;
+  }
+}

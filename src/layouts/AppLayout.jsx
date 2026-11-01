@@ -1,3 +1,4 @@
+import { isPreview } from "../preview/config";
 import { useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import {
@@ -153,6 +154,23 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
+        {isPreview && (
+          <div className="preview-banner">
+            <span>
+              <strong>UI PREVIEW</strong> Sample data · saved only in this
+              browser
+            </span>
+            <button
+              onClick={async () => {
+                const { resetPreview } = await import("../preview/api");
+                resetPreview();
+                window.location.reload();
+              }}
+            >
+              Reset sample data
+            </button>
+          </div>
+        )}
         <main>
           <Outlet context={{ search }} />
         </main>

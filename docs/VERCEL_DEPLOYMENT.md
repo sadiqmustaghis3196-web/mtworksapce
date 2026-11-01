@@ -1,4 +1,34 @@
-# Vercel deployment
+# Current deployment: UI preview
+
+The user explicitly requested a temporary code-based test login and to finalize UI design before database work. The default root `vercel.json` now deploys only the static React UI preview. No backend function is deployed; no Prisma generation, database connection, admin provisioning, SMTP or private variables are required for this preview.
+
+## Deploy now
+
+- Root Directory: repository root (`./`), not `server/`.
+- Framework: Vite. Use settings from `vercel.json`; remove any dashboard Build Command override that still runs the full-stack `build:vercel` command.
+- Install: `npm ci --include=dev`.
+- Build: `npm run build:preview`.
+- Output: `dist`.
+- Redeploy the latest main commit. Do not create a hosted database just to view this preview.
+
+Public preview credentials (also displayed on the login form):
+
+- Email: `admin@mtnexus.test`
+- Password: `NexusUI@2026!`
+
+These are public design-review credentials, not a real user account or a security boundary. No sensitive/company data belongs in this preview. The backend login never accepts these credentials unless a separate real account was explicitly created later.
+
+Sample projects/tasks live in `src/preview/data.js`. Preview sessions use sessionStorage; sample edits/comments and stage transitions use a separate localStorage key. Refresh retains changes in that browser; Reset sample data restores the original samples. Other browsers/users do not share these changes. Password changes and email delivery are explicitly unavailable.
+
+For local design work use `npm run dev:preview`. For the built-preview browser tests run `npm run build:preview`, serve with `npm run preview -- --port 8002`, then `npm run test:preview`. These tests run the actual preview implementation without API interception and assert that it makes no `/api/` requests.
+
+## Restore the database-backed application later
+
+Normal `npm run build` still compiles the real API-backed application without the preview login. To switch Vercel back to the full-stack deployment, run `npm run prepare:production`. This restores `api/index.js` and root `vercel.json` from `deployment/`, then review/commit those changes before deploying. The command never sets credentials or touches a database. Follow the requirements below for the database-backed phase.
+
+---
+
+# Full-stack deployment (later database phase)
 
 Deploy this repository as **one Vercel project from its repository root**, not `server/`. `src/` builds the React app and `api/index.js` exports the existing Express API. Both run on the same hostname; `/api/*` reaches the Node function, other routes reach static files/the React router.
 

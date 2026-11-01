@@ -1,3 +1,4 @@
+import { isPreview, previewCredentials } from "../../preview/config";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
@@ -75,6 +76,18 @@ export default function Login() {
               ? "Choose a strong password for your account."
               : "Sign in to your company workspace."}
         </p>
+        {isPreview && !forgot && !reset && (
+          <div className="preview-login">
+            <strong>UI Preview · Sample data only</strong>
+            <p>
+              Email: <code>{previewCredentials.email}</code>
+            </p>
+            <p>
+              Password: <code>{previewCredentials.password}</code>
+            </p>
+            <small>No database required. Changes stay in this browser.</small>
+          </div>
+        )}
         {!reset && (
           <label>
             Company email
@@ -83,6 +96,7 @@ export default function Login() {
               type="email"
               autoComplete="username"
               placeholder="you@company.com"
+              defaultValue={isPreview ? previewCredentials.email : undefined}
               required
             />
           </label>
@@ -96,6 +110,11 @@ export default function Login() {
                   name="password"
                   type={show ? "text" : "password"}
                   autoComplete={reset ? "new-password" : "current-password"}
+                  defaultValue={
+                    isPreview && !reset
+                      ? previewCredentials.password
+                      : undefined
+                  }
                   minLength={reset ? 12 : 1}
                   required
                 />
@@ -147,7 +166,11 @@ export default function Login() {
           <ArrowRight size={17} />
         </button>
         {(forgot || reset) && <Link to="/login">Back to sign in</Link>}
-        <footer>Secure access · Authorized team members only</footer>
+        <footer>
+          {isPreview
+            ? "Design review · Public test login · Not real authentication"
+            : "Secure access · Authorized team members only"}
+        </footer>
       </form>
     </div>
   );

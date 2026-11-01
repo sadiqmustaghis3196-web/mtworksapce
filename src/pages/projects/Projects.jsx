@@ -1,3 +1,4 @@
+import { isPreview } from "../../preview/config";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams, useNavigate } from "react-router-dom";
 import {
@@ -330,7 +331,10 @@ export default function Projects() {
       )}
       <footer className="board-footer">
         <span>
-          <span className="live-dot" /> Database-backed workspace
+          <span className="live-dot" />{" "}
+          {isPreview
+            ? "UI preview · browser-only sample data"
+            : "Database-backed workspace"}
         </span>
         <span>
           {filtered.length} tasks · {projects.length} projects

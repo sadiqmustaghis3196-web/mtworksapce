@@ -10,7 +10,11 @@
     "test": "node --test --test-reporter=spec server/test/unit/*.test.js",
     "test:ui": "playwright test",
     "build:vercel": "npm run prisma:generate --prefix server && npm run build && npm run provision-admin --prefix server -- --if-needed",
-    "test:deployment": "node --test tests/deployment.test.js"
+    "test:deployment": "node --test tests/deployment.test.js",
+    "dev:preview": "VITE_UI_PREVIEW=true vite --host 0.0.0.0",
+    "build:preview": "VITE_UI_PREVIEW=true vite build",
+    "prepare:production": "node scripts/prepare-production.mjs",
+    "test:preview": "playwright test --config playwright.preview.config.js"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

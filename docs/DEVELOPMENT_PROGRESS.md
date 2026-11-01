@@ -1,3 +1,15 @@
+# Active priority: UI preview before database work
+
+The latest user instruction explicitly requests temporary credentials in frontend code for UI testing and defers database work. This supersedes the earlier no-demo requirement only for the current design-preview phase. The original complete ERP specification remains the longer-term goal.
+
+Current default Vercel deployment: root static Vite UI preview (`npm run build:preview`), no API function, no server install, no Prisma or DB prerequisites. Test login: admin@mtnexus.test / NexusUI@2026! (public preview credentials, not a real user/account). Sample data and preview API are isolated in src/preview/; real server authentication is not modified. Preview browser session and edits use separate local/session storage keys. Visible UI PREVIEW notice and reset controls distinguish it from the real backend.
+
+Later full-stack configuration is retained in deployment/vercel.production.json and deployment/production-api.js. npm run prepare:production restores the original deployment files. Normal npm run build compiles real API mode. Never treat preview workflow checks as database or authorization integration tests. Do not provision a real account or ask the user for database setup as a prerequisite to UI design work now.
+
+Full task history and outstanding ERP work follow below.
+
+---
+
 # Implementation checkpoint
 
 Specification: full ERP rebuild supplied November 1, 2026. Screenshot is the design reference.
@@ -88,3 +100,13 @@ Four local deployment-configuration tests pass; React production build passes. F
 ## First-login provisioning follow-up
 
 Vercel build now runs provision-admin --if-needed after Prisma generation/frontend build. INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD opt into first-account creation using the hosted DATABASE_URL. Without variables the build skips provisioning; existing admins are never overwritten. Provisioning uses transaction-level advisory locking and stores a bcrypt hash, without printing credentials. Four service tests passed (fake transaction adapter), optional-script skip verified, four deployment-config tests passed, frontend build passed. Actual hosted account creation is blocked: this task has no hosted DATABASE_URL, Vercel management connection, or provisioning values. The cloud Prisma download policy is still blocked. Hosted schema initialization remains a prerequisite. No usable email/password or account-creation success is claimed.
+
+
+## UI-preview validation and release checkpoint
+
+- npm run build:preview: passed without database or Prisma installation/generation.
+- Built preview served locally; 2 Chromium end-to-end tests passed without API mocks. Verified wrong-password error, public preview login, protected-route redirect, stage review/approval, edit persistence across refresh, reset samples, logout, all seven viewport widths, mobile overlay close, and zero /api requests.
+- npm run build (real API mode): passed; compiled JavaScript scanned to verify it contains neither public preview email nor preview password.
+- 3 deployment configuration tests passed, including static-only default deployment and isolation from backend authentication.
+- Main app modules beyond current dashboard/board/profile shell remain incomplete. Preview does not finish the original full ERP specification.
+- Vercel must redeploy the new commit with root vercel.json settings. Default build now build:preview, not the old build:vercel override. Actual hosted redeployment has not been observed.

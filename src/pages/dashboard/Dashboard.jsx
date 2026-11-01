@@ -1,3 +1,4 @@
+import { isPreview } from "../../preview/config";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, PanelsTopLeft } from "lucide-react";
@@ -46,7 +47,11 @@ export default function Dashboard() {
               <div className="panel metric" key={label}>
                 <p>{label}</p>
                 <strong>{value}</strong>
-                <span>From your authorized records</span>
+                <span>
+                  {isPreview
+                    ? "From browser-only sample records"
+                    : "From your authorized records"}
+                </span>
               </div>
             ))}
           </div>
