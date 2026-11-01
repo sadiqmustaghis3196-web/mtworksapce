@@ -379,6 +379,7 @@ export default function DailyDashboard() {
           <DeliveryFlow
             counts={data.phaseCounts}
             tasks={data.tasks}
+            onOpenTask={setSelectedTask}
             selected={phase}
             onSelect={setPhase}
             reworkCount={data.tasks.filter((t) => t.stage === 5).length}

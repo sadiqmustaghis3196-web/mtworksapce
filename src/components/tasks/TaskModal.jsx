@@ -1,3 +1,4 @@
+import TaskDocument from "../documents/TaskDocument";
 import { isPreview } from "../../preview/config";
 import { readFile } from "../../services/files";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ export default function TaskModal({
   canReview,
 }) {
   const [record, setRecord] = useState(null),
+    [documentDirty, setDocumentDirty] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [tab, setTab] = useState("Activity"),
@@ -139,7 +141,17 @@ export default function TaskModal({
     }
   }
   return (
-    <Modal title={`Task #${task.id}`} onClose={onClose} wide>
+    <Modal
+      title={`Task #${task.id}`}
+      onClose={() => {
+        if (
+          !documentDirty ||
+          window.confirm("Discard unsaved document changes?")
+        )
+          onClose();
+      }}
+      wide
+    >
       {error && (
         <p className="error" role="alert">
           {error}
@@ -150,6 +162,17 @@ export default function TaskModal({
       ) : (
         <div className="task-detail">
           <div>
+            {isPreview && (
+              <TaskDocument
+                key={record.id}
+                task={record}
+                onSaved={async () => {
+                  await load();
+                  await onSaved();
+                }}
+                onDirty={setDocumentDirty}
+              />
+            )}
             <div className="detail-heading">
               <span className="badge category">{record.category}</span>
               <span className="badge">{stages[record.stage]}</span>
@@ -165,7 +188,7 @@ export default function TaskModal({
                 />
               </label>
               <label>
-                Description
+                {isPreview ? "Summary (board notes)" : "Description"}
                 <textarea
                   name="description"
                   defaultValue={record.description}

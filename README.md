@@ -79,3 +79,9 @@ Login now opens `/dashboard`: company/team views for managers and personal work 
 Set daily goals, record work summaries, actual minutes, progress, blockers and next steps. Overall progress is distinct from the change reported today. Daily history uses Asia/Karachi dates. Deadline reminders and notification preferences work in-app while the workspace is open; there is no background, email or push delivery. Role/profile selectors are preview lenses, not real authorization or account switching.
 
 Validation: `npm run test:daily` (14 rule tests), `npm run test:preview` (30 browser checks). See [daily dashboard lesson](docs/lessons/05-daily-dashboard.md).
+
+## Task documents and pipeline drill-down
+
+Assigned Upcoming cards now appear automatically in the current dashboard’s Plan stage without fabricated daily progress. Click a diagram stage to see its tasks, then click a task to open its workflow document. Add Card supports assignment at creation and the same ordered document editor: headings, paragraphs, PNG/JPG images with captions, bullet lists and dividers. Insert below any block, reorder, remove, preview and save. Existing description-only cards open with their description as the initial paragraph.
+
+Print / Save PDF opens an A4 print view containing the ordered document, ownership/deadline, workflow history, daily reports, checklists and comments. Choose Save as PDF in the browser print dialog. This does not import/edit existing PDFs or generate DOCX files. Limits: 40 blocks, 1 MB per image and 2.5 MB document total; data remains browser-local. Run `npm run test:documents` for document validation/export tests. Browser suite now contains 33 checks.

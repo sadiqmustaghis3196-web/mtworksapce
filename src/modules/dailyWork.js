@@ -384,7 +384,9 @@ export function dailyDashboard(data, options = {}) {
         entries.some((e) => e.taskId === t.id) ||
         dateInKarachi(t.dueDate) === date ||
         completedOn(t, date) ||
-        (isToday && [1, 2, 3, 5].includes(t.stage)),
+        (isToday &&
+          ([1, 2, 3, 5].includes(t.stage) ||
+            (t.stage === 0 && t.assignees?.length > 0))),
     )
     .map((t) => {
       const updates = entries

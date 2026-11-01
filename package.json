@@ -19,7 +19,8 @@
     "dev:production": "VITE_UI_PREVIEW=false vite --host 0.0.0.0",
     "test:workflows": "node --test tests/workflows.test.js",
     "test:insights": "node --test tests/insights.test.js",
-    "test:daily": "node --test tests/dailyWork.test.js"
+    "test:daily": "node --test tests/dailyWork.test.js",
+    "test:documents": "node --test tests/taskDocument.test.js"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

@@ -1,3 +1,4 @@
+import { validateDocument } from "../modules/taskDocument";
 import {
   hydrateDailyWork,
   dailyDashboard,
@@ -39,6 +40,13 @@ function save(data) {
 }
 const decorate = (task, data) => ({
   ...task,
+  dailyReports: (data.dailyWork?.entries || [])
+    .filter((e) => e.taskId === task.id)
+    .map((e) => ({
+      ...e,
+      employeeName: data.records?.employees?.find((p) => p.id === e.employeeId)
+        ?.fullName,
+    })),
   project: data.projects.find((p) => p.id === task.projectId),
   assignees: task.assignees?.map((a) => ({
     ...a,
@@ -164,19 +172,51 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
     if (method === "POST") {
       if (!body.title?.trim() || body.title.trim().length < 2)
         fail("Enter a task title of at least 2 characters.");
+      const documentBlocks =
+        body.documentBlocks === undefined
+          ? undefined
+          : validateDocument(body.documentBlocks);
+      const employeeIds = body.employeeIds || [];
+      const project = data.projects.find((p) => p.id === body.projectId);
+      if (
+        !Array.isArray(employeeIds) ||
+        employeeIds.some(
+          (id) =>
+            !data.records.employees.some(
+              (e) => e.id === id && e.status !== "Offboarded",
+            ) ||
+            (project?.memberIds?.length && !project.memberIds.includes(id)),
+        )
+      )
+        fail("Choose valid project members.");
       const task = {
         ...body,
+        documentBlocks,
         id: Math.max(100, ...data.tasks.map((t) => t.id)) + 1,
         stage: 0,
         progress: 0,
         createdAt: new Date().toISOString(),
-        assignees: [],
+        assignees: [...new Set(employeeIds)].map((id) => ({
+          id: crypto.randomUUID(),
+          employee: data.records.employees.find((e) => e.id === id),
+        })),
         updates: [],
         activities: [],
         checklists: [],
         attachments: [],
       };
+      delete task.employeeIds;
       data.tasks.push(task);
+      for (const id of [...new Set(employeeIds)])
+        data.records.notifications.unshift({
+          id: crypto.randomUUID(),
+          title: "New task assignment",
+          message: `#${task.id} ${task.title}`,
+          employeeId: id,
+          taskId: task.id,
+          status: "Unread",
+          createdAt: new Date().toISOString(),
+        });
       save(data);
       return { success: true, data: decorate(task, data) };
     }
@@ -311,6 +351,10 @@ export async function previewApi(path, { method = "GET", body = {} } = {}) {
         createdAt: new Date().toISOString(),
       });
     } else if (!match[2] && method === "PATCH") {
+      if (body.documentBlocks !== undefined) {
+        task.documentBlocks = validateDocument(body.documentBlocks);
+        task.documentUpdatedAt = new Date().toISOString();
+      }
       for (const key of [
         "title",
         "startDate",

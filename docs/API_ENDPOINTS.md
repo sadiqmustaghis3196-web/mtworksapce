@@ -40,3 +40,9 @@ These routes are intercepted by `src/preview/api.js` in UI preview mode; they ar
 - `PATCH /dashboard/daily/preferences`: in-app reminder switches and local digest time.
 
 Validation and history live in `src/modules/dailyWork.js`. Role/profile parameters change the preview display scope and do not establish authorization. No network or background notification delivery occurs.
+
+## Browser-only task document fields
+
+Preview `POST /tasks` accepts `documentBlocks` and `employeeIds`; it validates document/member inputs before saving the task and assignment notifications together. Preview `PATCH /tasks/:id` accepts `documentBlocks`, recording `documentUpdatedAt`. `GET /tasks/:id` decorates the task with its current project/assignees and linked daily reports for preview/export. These fields are not implemented on the real backend yet.
+
+Document blocks are ordered `{id,type,text}` or `{id,type:"image",src,caption}` records. Allowed types: heading, text, image, list, divider. Only local PNG/JPG data URLs are accepted; HTML/SVG and remote image URLs are rejected. Export escapes all text. No network PDF service is used.

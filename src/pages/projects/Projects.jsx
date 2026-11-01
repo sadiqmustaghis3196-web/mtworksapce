@@ -1,3 +1,5 @@
+import DocumentEditor from "../../components/documents/DocumentEditor";
+import { validateDocument } from "../../modules/taskDocument";
 import {
   TaskCalendar,
   TaskTimeline,
@@ -34,6 +36,11 @@ export default function Projects() {
     params = useParams(),
     navigate = useNavigate();
   const [tasks, setTasks] = useState([]),
+    [documentBlocks, setDocumentBlocks] = useState([]),
+    [newCardTitle, setNewCardTitle] = useState(""),
+    [createProject, setCreateProject] = useState(""),
+    [createAssignees, setCreateAssignees] = useState([]),
+    [employees, setEmployees] = useState([]),
     [projects, setProjects] = useState([]),
     [category, setCategory] = useState("All"),
     [project, setProject] = useState(params.projectId || ""),
@@ -55,6 +62,7 @@ export default function Projects() {
       const [t, p] = await Promise.all([api("/tasks"), api("/projects")]);
       setTasks(t.data);
       setProjects(p.data);
+      if (isPreview) setEmployees((await api("/workspace/employees")).data);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -64,6 +72,14 @@ export default function Projects() {
   useEffect(() => {
     load();
   }, []);
+  useEffect(() => {
+    if (adding !== null) {
+      setDocumentBlocks([]);
+      setNewCardTitle("");
+      setCreateProject(project);
+      setCreateAssignees([]);
+    }
+  }, [adding]);
   const filtered = tasks.filter(
     (t) =>
       (category === "All" || t.category === category) &&
@@ -103,6 +119,12 @@ export default function Projects() {
         method: "POST",
         body: {
           ...f,
+          ...(isPreview
+            ? {
+                documentBlocks: validateDocument(documentBlocks),
+                employeeIds: createAssignees,
+              }
+            : {}),
           stage: 0,
           projectId: f.projectId || undefined,
           dueDate: f.dueDate ? new Date(f.dueDate).toISOString() : undefined,
@@ -303,16 +325,42 @@ export default function Projects() {
         />
       )}{" "}
       {adding !== null && (
-        <Modal title="Add card · Upcoming" onClose={() => setAdding(null)}>
+        <Modal
+          title="Add card · Upcoming"
+          onClose={() => setAdding(null)}
+          wide={isPreview}
+        >
           <form onSubmit={create}>
             <label>
               Title
-              <input name="title" required minLength={2} maxLength={200} />
+              <input
+                name="title"
+                required
+                minLength={2}
+                maxLength={200}
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+              />
             </label>
-            <label>
-              Description
-              <textarea name="description" rows={3} />
-            </label>
+            {isPreview ? (
+              <DocumentEditor
+                value={documentBlocks}
+                onChange={setDocumentBlocks}
+                task={{
+                  title: newCardTitle || "New task document",
+                  stage: 0,
+                  project: projects.find((p) => p.id === createProject),
+                  assignees: createAssignees.map((id) => ({
+                    employee: employees.find((e) => e.id === id),
+                  })),
+                }}
+              />
+            ) : (
+              <label>
+                Description
+                <textarea name="description" rows={3} />
+              </label>
+            )}
             <div className="form-grid">
               <label>
                 Category
@@ -336,7 +384,18 @@ export default function Projects() {
             </div>
             <label>
               Project
-              <select name="projectId" defaultValue={project}>
+              <select
+                name="projectId"
+                {...(isPreview
+                  ? {
+                      value: createProject,
+                      onChange: (e) => {
+                        setCreateProject(e.target.value);
+                        setCreateAssignees([]);
+                      },
+                    }
+                  : { defaultValue: project })}
+              >
                 <option value="">No project</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -345,6 +404,40 @@ export default function Projects() {
                 ))}
               </select>
             </label>
+            {isPreview && (
+              <label>
+                Assign card to
+                <select
+                  multiple
+                  value={createAssignees}
+                  onChange={(e) =>
+                    setCreateAssignees(
+                      Array.from(e.target.selectedOptions, (o) => o.value),
+                    )
+                  }
+                >
+                  {employees
+                    .filter(
+                      (e) =>
+                        e.status !== "Offboarded" &&
+                        (!projects.find((p) => p.id === createProject)
+                          ?.memberIds?.length ||
+                          projects
+                            .find((p) => p.id === createProject)
+                            .memberIds.includes(e.id)),
+                    )
+                    .map((e) => (
+                      <option value={e.id} key={e.id}>
+                        {e.fullName}
+                      </option>
+                    ))}
+                </select>
+                <small>
+                  Select project members; assigned work appears in their
+                  dashboard pipeline.
+                </small>
+              </label>
+            )}
             <label>
               Due date
               <input type="date" name="dueDate" />

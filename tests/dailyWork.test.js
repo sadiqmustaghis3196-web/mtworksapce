@@ -230,3 +230,33 @@ test("historical reports retain an employee’s logged work after reassignment",
   assert.equal(report.tasks.find((t) => t.id === 426).reportedProgress, 80);
   assert.ok(report.people[0].taskCount >= report.people[0].updatedTasks);
 });
+
+test("assigned upcoming cards enter the current pipeline without inventing daily activity", () => {
+  const data = fresh();
+  data.tasks.push({
+    id: 9999,
+    title: "New assigned brief",
+    stage: 0,
+    progress: 0,
+    assignees: [
+      {
+        id: "new-assignment",
+        employee: { id: "preview-ali", fullName: "Ali Raza" },
+      },
+    ],
+    activities: [],
+  });
+  const report = dailyDashboard(data, view("EMPLOYEE", "preview-ali"));
+  const task = report.tasks.find((t) => t.id === 9999);
+  assert.ok(task);
+  assert.equal(task.reportedPhase, "planning");
+  assert.equal(task.dayEntries.length, 0);
+  assert.equal(task.dayMinutes, 0);
+  assert.equal(task.dayDelta, 0);
+  assert.ok(
+    !dailyDashboard(data, {
+      ...view("EMPLOYEE", "preview-ali"),
+      date: "2026-11-02",
+    }).tasks.some((t) => t.id === 9999),
+  );
+});

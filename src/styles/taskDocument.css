@@ -1,0 +1,407 @@
+.task-document-editor {
+  min-width: 0;
+  margin: 16px 0 24px;
+  border: 1px solid #7792c143;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #15213a;
+}
+.document-toolbar {
+  padding: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid #7792c133;
+}
+.document-toolbar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.document-toolbar > div:first-child {
+  flex: 1;
+}
+.document-toolbar strong {
+  font-size: 13px;
+}
+.document-toolbar span {
+  font-size: 10px;
+  color: #acbedb;
+}
+.document-toolbar button,
+.document-insert-bar button,
+.document-block-controls button,
+.document-insert-after {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #819dc344;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #283a58;
+  color: #e7efff;
+  font-size: 11px;
+  cursor: pointer;
+}
+.document-toolbar button.selected {
+  background: #3a5281;
+  border-color: #65d8ed;
+}
+.document-toolbar button:disabled,
+.document-insert-bar button:disabled,
+.document-block-controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.document-insert-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 14px;
+  background: #1b2b46;
+}
+.document-insert-bar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  margin: 0;
+}
+.document-insert-bar select {
+  width: auto !important;
+  min-width: 110px;
+  margin: 0 !important;
+  padding: 7px !important;
+}
+.document-insert-bar small {
+  flex-basis: 100%;
+  color: #9fb4d1;
+  font-size: 10px;
+}
+.document-paper {
+  background: #fff;
+  color: #1c2c44;
+  margin: 18px;
+  padding: 30px 26px;
+  min-height: 340px;
+  box-shadow: 0 4px 18px #0003;
+  border-radius: 2px;
+  font:
+    13px/1.8 Arial,
+    sans-serif;
+  min-width: 0;
+}
+.document-paper .document-brand {
+  color: #5d7795;
+  font-size: 8px;
+  letter-spacing: 2px;
+  margin: 0 0 15px;
+}
+.document-paper .document-title {
+  font-size: 24px;
+  color: #1a2d4a;
+  line-height: 1.3;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+.document-reference,
+.document-empty {
+  color: #64758b;
+  font-size: 11px;
+}
+.document-edit-block {
+  border: 1px solid #dce3ed;
+  border-radius: 5px;
+  margin: 18px 0;
+  background: #fff;
+  min-width: 0;
+}
+.document-block-controls {
+  padding: 6px 8px;
+  background: #f1f5fa;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid #e0e7ef;
+}
+.document-block-controls > span {
+  flex: 1;
+  text-transform: uppercase;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #60758e;
+}
+.document-block-controls button {
+  background: #fff;
+  color: #405a7c;
+  padding: 5px;
+  border-color: #cbd5e2;
+}
+.document-paper textarea,
+.document-paper input {
+  background: #fff !important;
+  color: #243754 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px !important;
+  line-height: 1.8;
+  font:
+    13px/1.8 Arial,
+    sans-serif;
+  margin: 0 !important;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.document-paper textarea:focus,
+.document-paper input:focus {
+  outline: 2px solid #58acc6 !important;
+  outline-offset: -2px;
+}
+.document-paper .document-heading-input {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.document-paper figure {
+  margin: 0;
+  padding: 12px;
+  break-inside: avoid;
+}
+.document-paper img {
+  display: block;
+  max-width: 100%;
+  max-height: 650px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+.document-paper figcaption {
+  font-size: 11px;
+  color: #62748c;
+  text-align: center;
+  margin-top: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.document-paper p,
+.document-paper li,
+.document-render-block h2 {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.document-paper .document-render-block h2 {
+  font-size: 20px;
+  color: #1d3553;
+  margin: 18px 0 10px;
+}
+.document-paper .document-render-block p {
+  font-size: 13px;
+  color: #243754;
+  margin: 14px 0;
+}
+.document-render-block ul {
+  padding-left: 24px;
+  color: #243754;
+}
+.document-render-block figure {
+  padding: 0;
+  margin: 22px 0;
+}
+.document-paper hr {
+  border: 0;
+  border-top: 1px solid #ccd6e4;
+  margin: 20px 12px;
+}
+.document-insert-after {
+  display: flex;
+  background: #f6f9fc;
+  color: #52718b;
+  border: 0;
+  border-top: 1px dashed #ced9e5;
+  width: 100%;
+  border-radius: 0;
+  padding: 7px;
+}
+.document-hint {
+  font-size: 10px !important;
+  line-height: 1.7;
+  color: #a0b5d4;
+  padding: 0 15px 14px;
+  margin: 0;
+}
+.document-file-input {
+  display: none !important;
+}
+.document-live-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #7792c133;
+  border-radius: 10px;
+  background: #20345355;
+}
+.document-live-context > span {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.document-live-context small {
+  display: block;
+  letter-spacing: 1px;
+  color: #96b2d3;
+  font-size: 8px;
+  margin-bottom: 6px;
+}
+.pipeline-task-documents {
+  margin: 0 20px 15px;
+  border: 1px solid #5dbbd75c;
+  border-radius: 10px;
+  padding: 16px;
+  background: #0b1d3344;
+}
+.pipeline-task-documents > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.pipeline-task-documents h3 {
+  font-size: 13px;
+  margin: 0;
+}
+.pipeline-task-documents header span,
+.pipeline-task-documents > p {
+  font-size: 10px;
+  color: #a9bddb;
+}
+.pipeline-task-documents > button {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  background: #203451;
+  border: 1px solid #6b8aaa44;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  color: #b9d6ec;
+  cursor: pointer;
+}
+.pipeline-task-documents > button:hover {
+  border-color: #55caea;
+  background: #294360;
+}
+.pipeline-task-documents > button > span {
+  flex: 1;
+  min-width: 0;
+}
+.pipeline-task-documents strong {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.pipeline-task-documents small {
+  display: block;
+  font-size: 10px;
+  margin-top: 7px;
+  color: #a7bdd8;
+  overflow-wrap: anywhere;
+}
+.light .task-document-editor {
+  background: #dfe8f4;
+}
+.light .document-toolbar {
+  color: #263e60;
+}
+.light .document-toolbar span,
+.light .document-hint {
+  color: #4b6280;
+}
+.light .document-insert-bar {
+  background: #cedcf0;
+  color: #1a3555;
+}
+.light .document-insert-bar small {
+  color: #486380;
+}
+.light .document-live-context {
+  background: #e8effa;
+}
+.light .document-live-context small {
+  color: #536e91;
+}
+.light .pipeline-task-documents {
+  background: #ebf3fc;
+}
+.light .pipeline-task-documents > button {
+  background: #dceafa;
+  color: #243d60;
+}
+.light .pipeline-task-documents small,
+.light .pipeline-task-documents header span {
+  color: #456380;
+}
+@media (max-width: 600px) {
+  .document-paper {
+    margin: 9px;
+    padding: 22px 12px;
+  }
+  .document-paper .document-title {
+    font-size: 20px;
+  }
+  .document-toolbar {
+    padding: 10px;
+  }
+  .document-toolbar button {
+    font-size: 10px;
+    padding: 7px;
+  }
+  .document-insert-bar {
+    padding: 10px;
+  }
+  .document-live-context {
+    padding: 10px;
+    gap: 12px;
+  }
+  .document-paper textarea {
+    font-size: 12px;
+  }
+  .pipeline-task-documents {
+    margin: 0 14px 15px;
+    padding: 12px;
+  }
+  .pipeline-task-documents > button {
+    gap: 8px;
+    padding: 10px;
+  }
+}
+.document-workflow-snapshot {
+  border-top: 2px solid #32a6bd;
+  margin-top: 30px;
+  padding-top: 14px;
+  color: #243754;
+}
+.document-paper .document-workflow-snapshot h2 {
+  font-size: 20px;
+  line-height: 1.4;
+  color: #1d3553;
+}
+.document-paper .document-workflow-snapshot h3 {
+  font-size: 14px;
+  margin: 20px 0 7px;
+  color: #294363;
+}
+.document-paper .document-workflow-snapshot p,
+.document-paper .document-workflow-snapshot li {
+  font-size: 12px;
+  color: #304763;
+  overflow-wrap: anywhere;
+}

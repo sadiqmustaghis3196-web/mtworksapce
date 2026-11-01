@@ -1,4 +1,5 @@
 import {
+  FileText,
   ClipboardList,
   Code2,
   FlaskConical,
@@ -30,6 +31,7 @@ const paths = [
 export default function DeliveryFlow({
   counts,
   tasks = [],
+  onOpenTask,
   selected,
   onSelect,
   reworkCount,
@@ -199,6 +201,50 @@ export default function DeliveryFlow({
           </span>
         </div>
       </div>
+      {selected !== "all" && (
+        <section
+          className="pipeline-task-documents"
+          aria-label="Selected stage work"
+        >
+          <header>
+            <h3>
+              {selected === "rework"
+                ? "Rework"
+                : deliveryPhases.find((p) => p.id === selected)?.label}{" "}
+              · task documents
+            </h3>
+            <span>Click a task to edit its workflow document</span>
+          </header>
+          {tasks
+            .filter((t) =>
+              selected === "rework"
+                ? t.stage === 5
+                : t.reportedPhase === selected,
+            )
+            .map((t) => (
+              <button type="button" key={t.id} onClick={() => onOpenTask?.(t)}>
+                <FileText size={18} />
+                <span>
+                  <strong>
+                    #{t.id} {t.title}
+                  </strong>
+                  <small>
+                    {t.assignees?.map((a) => a.employee?.fullName).join(", ") ||
+                      "Unassigned"}{" "}
+                    · {t.reportedProgress ?? t.progress ?? 0}% ·{" "}
+                    {t.dayMinutes || 0} min reported
+                  </small>
+                </span>
+                <ArrowRight size={16} />
+              </button>
+            ))}
+          {!tasks.some((t) =>
+            selected === "rework"
+              ? t.stage === 5
+              : t.reportedPhase === selected,
+          ) && <p>No tasks in this stage for the selected view.</p>}
+        </section>
+      )}
       <footer>
         <button
           aria-pressed={selected === "rework"}

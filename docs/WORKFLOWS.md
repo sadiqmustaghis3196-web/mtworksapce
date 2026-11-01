@@ -24,3 +24,9 @@ After login, select the dashboard role/profile lens and work date. Managers see 
 Select Testing or Quality check when reporting that work. Send for Review uses the existing approval process; approval completes the task and rejection returns it through rework. Daily history records reported work separately from current task state. Admin/team views summarize each person's reports, time, approvals and blockers. Personal preview views hide review/assignment controls.
 
 Notification preferences control deadline/review reminders and daily digest time (Asia/Karachi). Reminders are local, deduplicated and checked while the dashboard is open. Mark read persists. These role lenses and records are for UI testing; real shared accounts, permissions and remote notifications require the later backend phase.
+
+## Task brief → pipeline → document → PDF
+
+Add Card → enter title and document blocks → choose project/members → create. Assigned Upcoming work appears in Plan & assign. Open a stage’s task list, then its task document. Edit paragraphs/headings, insert an image with caption, add more text below, move blocks up/down, preview and Save document. Close prompts before discarding unsaved document changes. Daily reports and workflow stages remain linked to this task.
+
+Print / Save PDF opens a separate A4 print view; click its Print / Save as PDF button and choose Save as PDF. It uses the currently shown document draft and includes live ownership, deadlines, stage changes, daily reports, checklists and comments. Keep edits with Save document before leaving the task. Existing PDFs are attachments, not editable document sources.
